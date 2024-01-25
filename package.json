@@ -1,0 +1,27 @@
+{
+  "name": "sneiper",
+  "version": "1.0.0",
+  "description": "Snipe NFTS on SEI",
+  "main": "sneiper.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fudgebucket27/sneiper.git"
+  },
+  "keywords": [
+    "sniper",
+    "nft",
+    "sei"
+  ],
+  "author": "Fudgey",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fudgebucket27/sneiper/issues"
+  },
+  "homepage": "https://github.com/fudgebucket27/sneiper#readme",
+  "dependencies": {
+    "@sei-js/core": "^3.1.3"
+  }
+}

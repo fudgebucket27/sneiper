@@ -34,7 +34,7 @@ async function main() {
         console.log("Sneipe successful! Tx hash: " + result.transactionHash);
       }
       else {
-        console.log("Sneipe uunsuccessful!")
+        console.log("Sneipe unsuccessful!")
       }
 
  

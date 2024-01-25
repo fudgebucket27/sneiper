@@ -12,7 +12,7 @@ async function main() {
 
     const fee = calculateFee(600000, "0.6usei") //this is the gas limit
     const msg =  {
-        buy_now : {
+        "buy_now" : {
           "expected_price": {
             "amount": "660000",
             "denom": "usei"

@@ -1,10 +1,8 @@
 import {configDotenv} from "dotenv";
 
-import { restoreWallet } from "@sei-js/core";
+import { restoreWallet,  getSigningCosmWasmClient, getCosmWasmClient, SUPPORTED_WALLETS } from "@sei-js/core";
 
 import { calculateFee } from '@cosmjs/stargate';
-
-import { getSigningCosmWasmClient } from "@sei-js/core";
 
 async function main() {
     configDotenv.apply(); //Get .env file 
@@ -12,10 +10,22 @@ async function main() {
     const accounts = await restoredWallet.getAccounts(); //get accounts
     const senderAddress = accounts[0].address; //get address
 
-    const fee = calculateFee(600000, "0.6") //this is the gas limit
+    const fee = calculateFee(600000, "0.6usei") //this is the gas limit
+    const msg =  {
+        buy_now : {
+          "expected_price": {
+            "amount": "660000",
+            "denom": "usei"
+          },
+          "nft": {
+            "address": "sei1faqw953tzda4qvr37wnjpr99t0hx6nqeknrf9c03gzrjvm764huqgvspst",
+            "token_id": "1804"
+          }
+        }
+      };
 
-    const result = await restoredWallet.getSigningCosmWasmClient(process.env.RPC_URL);
-
+    const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet);
+    const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", msg, fee);
 }
 
 main();

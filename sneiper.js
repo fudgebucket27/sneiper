@@ -10,7 +10,6 @@ async function main() {
     const accounts = await restoredWallet.getAccounts(); //get accounts
     const senderAddress = accounts[0].address; //get address
 
-    const fee = calculateFee(600000, "0.6usei") //this is the gas limit
     const msg =  {
         "buy_now": {
             "expected_price": {
@@ -19,17 +18,30 @@ async function main() {
             },
             "nft": {
                 "address": "sei1faqw953tzda4qvr37wnjpr99t0hx6nqeknrf9c03gzrjvm764huqgvspst",
-                "token_id": "2901"
+                "token_id": "3490"
             }
         }
     };
 
-    const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet);
+    const totalFunds = [{
+      denom: 'usei',
+      amount: "408000" //Add 2% for pallet fee
+    }];
+
+    const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: "0.1usei"});
     try {
       console.log("Sneiper executing...");
-      const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", msg, fee);
+      const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", msg, "auto", "sneiper", totalFunds );
+      if(result.transactionHash){
+        console.log("Sneipe successful! Tx hash: " + result.transactionHash);
+      }
+      else {
+        console.log("Sneipe uunsuccessful!")
+      }
+
+ 
     } catch (error){
-        console.log(error.message);
+        console.log("Snipe unsuccessful! " + error.message);
     }
 }
 

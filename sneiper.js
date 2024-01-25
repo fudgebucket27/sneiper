@@ -1,8 +1,6 @@
 import {configDotenv} from "dotenv";
 
-import { restoreWallet,  getSigningCosmWasmClient, getCosmWasmClient, SUPPORTED_WALLETS } from "@sei-js/core";
-
-import { calculateFee } from '@cosmjs/stargate';
+import { restoreWallet,  getSigningCosmWasmClient} from "@sei-js/core";
 
 async function main() {
     configDotenv.apply(); //Get .env file 

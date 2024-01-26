@@ -3,15 +3,11 @@ import { restoreWallet,  getSigningCosmWasmClient} from "@sei-js/core";
 configDotenv.apply(); //Get .env file 
 
 const pollingIntervalIds = []; // Array to hold all polling interval IDs
+let executionQueue = [];
+let isProcessingQueue = false;
 
-
-async function sneiper(senderAddress) {
+async function sneiper(senderAddress, restoredWallet) {
     try {
-      console.log("Sneiper executing...");
-      const restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE); //restore wallet from .env RECOVERY_PHRASE
-      const accounts = await restoredWallet.getAccounts(); //get accounts
-      const senderAddress = accounts[0].address; //get address
-
       //Getting data from pallet API
       const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v1/nfts/"+ process.env.CONTRACT_ADDRESS + "?get_tokens=true&token_id=" + process.env.TOKEN_ID + "&token_id_exact=true");
       if (!palletListingResponse.ok) {
@@ -26,22 +22,47 @@ async function sneiper(senderAddress) {
       }
       const palletListingResponseData = await palletListingResponse.json();
 
-      //Executing the pallet smart contract
-      if(palletListingResponseData.tokens[0].auction == null)
-      {
-        throw new Error("There is no listing for this NFT!");
+      if (isValidListing(palletListingResponseData) && !isProcessingQueue) {
+        console.log("Listing valid! Sneiping...")
+        executionQueue.push({ senderAddress, palletListingResponseData, restoredWallet });
+        processQueue();
       }
+    } catch (error){
+        console.log("Sneipe unsuccessful! " + error.message);
+    }
+}
 
-      if(palletListingResponseData.tokens[0].auction.type !== "fixed_price")
+function isValidListing(palletListingResponseData) {
+      if(palletListingResponseData.tokens[0].auction == null || palletListingResponseData.tokens[0].auction.type !== "fixed_price" || palletListingResponseData.tokens[0].auction.price_float > process.env.PRICE_LIMIT)
       {
-        throw new Error("The listing for this NFT is not buy now!");
+        return false;
       }
-
-      if(palletListingResponseData.tokens[0].auction.price_float > process.env.PRICE_LIMIT)
+      else
       {
-        throw new Error("The listing exceeds the PRICE_LIMIT!");
+        return true;
       }
+}
 
+async function processQueue() {
+  if (isProcessingQueue || executionQueue.length === 0) {
+      return;
+  }
+
+  isProcessingQueue = true;
+  const { senderAddress, palletListingResponseData, restoredWallet } = executionQueue.shift();
+
+  try {
+      await executeContract(senderAddress, palletListingResponseData, restoredWallet);
+  } catch (error) {
+      console.log("Sneipe unsuccessful! " + error.message);
+  } finally {
+      isProcessingQueue = false;
+      processQueue();
+  }
+}
+
+async function executeContract(senderAddress, palletListingResponseData, restoredWallet) {
+  try {
       const msg =  {
         "buy_now": {
             "expected_price": {
@@ -72,23 +93,24 @@ async function sneiper(senderAddress) {
         process.exit(0);
       }
       else {
-        console.log("Sneipe unsuccessful")
+        console.log("Sneipe unsuccessful!")
       }
-    } catch (error){
-        console.log("Snipe unsuccessful! " + error.message);
+    } catch (error) {
+      console.log("Sneipe unsuccessful! " + error.message);
     }
 }
 
 async function main() {
   try {
+      console.log("Sneiper watching listings...");
       const restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE); // Restore wallet
       const accounts = await restoredWallet.getAccounts(); // Get accounts
       const senderAddress = accounts[0].address; // Get address
-
         //Run sneiper based on polling time
+
         const pollingFrequency = parseInt(process.env.POLLING_FREQUENCY, 10) * 1000;
         if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
-          const intervalId = setInterval(() => sneiper(senderAddress), pollingFrequency);
+          const intervalId = setInterval(() => sneiper(senderAddress, restoredWallet), pollingFrequency);
           pollingIntervalIds.push(intervalId);
         } else {
             console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");

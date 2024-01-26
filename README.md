@@ -10,6 +10,7 @@ Snipe NFTs on SEI. Works with Pallet so far.
 1. Clone this repo
 2. In terminal run: npm install
 3. In root of the repo's folder create a .env file with the following variables
+
    RECOVERY_PHRASE=your recovery phrase 
    
    RPC_URL= the rpc url

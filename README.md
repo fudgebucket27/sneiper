@@ -4,7 +4,7 @@ THIS IS A WORK IN PROGRESS
 Snipe NFTs on SEI. Works with Pallet so far.
 
 ## TO DO
-1. Need to query Pallet api for multiple listings
+1. Need to query Pallet api for listings for multiple token ids
 
 # Setup
 1. Clone this repo

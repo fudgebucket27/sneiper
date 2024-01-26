@@ -7,7 +7,9 @@ Snipe NFTs on SEI. Works with Pallet so far.
 1. Need to query Pallet api for listings for multiple token ids
 
 # Setup
-1. Clone this repo
+1. Install node js, npm and git
+2. Clone this repo, in terminal run: git clone https://github.com/fudgebucket27/sneiper
+3. In terminal run: cd sneiper
 2. In terminal run: npm install
 3. In root of the repo's folder create a .env file with the following variables
 

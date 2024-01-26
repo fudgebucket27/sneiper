@@ -3,13 +3,12 @@ import {configDotenv} from "dotenv";
 import { restoreWallet,  getSigningCosmWasmClient} from "@sei-js/core";
 
 async function main() {
-    configDotenv.apply(); //Get .env file 
-    const restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE); //restore wallet from .env RECOVERY_PHRASE
-    const accounts = await restoredWallet.getAccounts(); //get accounts
-    const senderAddress = accounts[0].address; //get address
-
     try {
       console.log("Sneiper executing...");
+      configDotenv.apply(); //Get .env file 
+      const restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE); //restore wallet from .env RECOVERY_PHRASE
+      const accounts = await restoredWallet.getAccounts(); //get accounts
+      const senderAddress = accounts[0].address; //get address
 
       //Getting data from pallet API
       const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v1/nfts/"+ process.env.CONTRACT_ADDRESS + "?get_tokens=true&token_id=" + process.env.TOKEN_ID + "&token_id_exact=true");

@@ -4,11 +4,7 @@ THIS IS A WORK IN PROGRESS
 Snipe NFTs on SEI. Works with Pallet so far.
 
 ## TO DO
-1. Need to query Pallet api for listings
-2. Need to query Pallet api for single listings
-3. Option to buy at a threshold
-4. How often to query pallet api
-5. Buy now message should be configurable. It's currently hardcoded lmao.
+1. Need to query Pallet api for multiple listings
 
 # Setup
 1. Clone this repo

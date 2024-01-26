@@ -1,11 +1,10 @@
 import {configDotenv} from "dotenv";
-
 import { restoreWallet,  getSigningCosmWasmClient} from "@sei-js/core";
+configDotenv.apply(); //Get .env file 
 
-async function main() {
+async function sneiper() {
     try {
       console.log("Sneiper executing...");
-      configDotenv.apply(); //Get .env file 
       const restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE); //restore wallet from .env RECOVERY_PHRASE
       const accounts = await restoredWallet.getAccounts(); //get accounts
       const senderAddress = accounts[0].address; //get address
@@ -22,7 +21,6 @@ async function main() {
         }
         throw new Error(`Failed to get pallet listing! ${errorMsg}`);
       }
-
       const palletListingResponseData = await palletListingResponse.json();
 
       //Executing the pallet smart contract
@@ -36,11 +34,7 @@ async function main() {
         throw new Error("The listing for this NFT is not buy now!");
       }
 
-      if(palletListingResponseData.tokens[0].auction.price_float <= process.env.PRICE_LIMIT)
-      {
-        
-      }
-      else
+      if(palletListingResponseData.tokens[0].auction.price_float > process.env.PRICE_LIMIT)
       {
         throw new Error("The listing exceeds the PRICE_LIMIT!");
       }
@@ -73,13 +67,29 @@ async function main() {
         console.log("Sneipe successful! Tx hash: " + result.transactionHash);
       }
       else {
-        console.log("Sneipe uunsuccessful!")
+        console.log("Sneipe unsuccessful")
       }
-
- 
     } catch (error){
         console.log("Snipe unsuccessful! " + error.message);
     }
+}
+
+async function main() {
+  try {
+      const restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE); // Restore wallet
+      const accounts = await restoredWallet.getAccounts(); // Get accounts
+      const senderAddress = accounts[0].address; // Get address
+
+        //Run sneiper based on polling time
+        const pollingFrequency = parseInt(process.env.POLLING_FREQUENCY, 10) * 1000;
+        if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
+          setInterval(() => sneiper(senderAddress), pollingFrequency); // Run executePeriodically at intervals
+        } else {
+            console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
+        }
+    } catch (error) {
+      console.error("Error initializing wallet: " + error.message);
+  }
 }
 
 main();

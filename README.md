@@ -1,10 +1,5 @@
 # sneiper
-THIS IS A WORK IN PROGRESS
-
-Snipe NFTs on SEI. Works with Pallet so far.
-
-## TO DO
-1. Need to query Pallet api for listings for multiple token ids
+Snipe NFTs on SEI. Works with Pallet.
 
 # Setup
 1. Install node js, npm and git

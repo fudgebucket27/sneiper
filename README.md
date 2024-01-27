@@ -2,7 +2,7 @@
 Snipe NFTs on SEI. Works with Pallet.
 
 # Features
-1. Target a Collection and an NFT to buy it under a certain price point
+1. Target a Collection and multiple NFTs to buy them under a certain price point
 2. Target a Collection and buy multiple NFTs that fall under a certain price point
 
 # Setup
@@ -18,7 +18,7 @@ Snipe NFTs on SEI. Works with Pallet.
    
    CONTRACT_ADDRESS=the contract address for the collection
    
-   TOKEN_ID=the token id for the NFT, or use ALL to search the first 25 NFTs in the collection that fall under the PRICE_LIMIT
+   TOKEN_ID=the token id for the NFT, you can add multiple token ids, just seperate them with a comma, or use ALL to search the first 25 NFTs in the collection that fall under the PRICE_LIMIT
 
    BUY_LIMIT=if using ALL in TOKEN_ID, this is the amount of NFTs to buy at a time. Limited to 25 max.
    
@@ -35,4 +35,3 @@ Pull requests are welcome!
 
 # TO DO
 1. Support for dagora
-2. Suport for multiple token ids

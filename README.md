@@ -1,7 +1,7 @@
 # sneiper
 Snipe NFTs on SEI. Works with Pallet.
 
-#Features
+# Features
 1. Target a Collection and an NFT to buy it under a certain price point
 2. Target a Collection and buy multiple NFTs that fall under a certain price point
 

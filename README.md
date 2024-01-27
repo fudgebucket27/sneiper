@@ -19,7 +19,9 @@ Snipe NFTs on SEI. Works with Pallet so far.
    
    CONTRACT_ADDRESS=the contract address for the collection
    
-   TOKEN_ID=the token id for the NFT
+   TOKEN_ID=the token id for the NFT, or use ALL to search the first 25 NFTs that fall under the PRICE_LIMIT
+
+   BUY_LIMIT=if using ALL in TOKEN_ID, see to the max amount of NFTs to buy at a time. Limited to 25 max.
    
    PRICE_LIMIT=eg 30 //the price limit to buy at for the NFT
    

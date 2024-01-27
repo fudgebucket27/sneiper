@@ -2,9 +2,15 @@ import {configDotenv} from "dotenv";
 import { restoreWallet,  getSigningCosmWasmClient} from "@sei-js/core";
 configDotenv.apply(); //Get .env file 
 
-const pollingIntervalIds = []; // Array to hold all polling interval IDs
+const pollingIntervalIds = []; 
 let executionQueue = [];
 let isProcessingQueue = false;
+let targetTokenIds;
+if(process.env.TOKEN_ID !== "ALL")
+{
+  targetTokenIds = new Set(process.env.TOKEN_ID.split(',').map(id => parseInt(id.trim(), 10)));
+}
+const boughtTokenIds = new Set(); 
 
 async function sneiper(senderAddress, restoredWallet) {
     try {
@@ -28,23 +34,31 @@ async function sneiper(senderAddress, restoredWallet) {
           processQueue();
         }
       }else {
-        const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v1/nfts/"+ process.env.CONTRACT_ADDRESS + "?get_tokens=true&token_id=" + process.env.TOKEN_ID + "&token_id_exact=true");
-        if (!palletListingResponse.ok) {
-          let errorMsg = "";
-          try {
-              const errorData = await palletListingResponse.json();
-              errorMsg = errorData.message || JSON.stringify(errorData); 
-          } catch (parseError) {
-              errorMsg = palletListingResponse.statusText;
+        const tokenIds = process.env.TOKEN_ID.split(',').map(id => parseInt(id.trim(), 10));
+
+        for (const tokenId of tokenIds) {
+          if (boughtTokenIds.has(tokenId)) {
+            continue; // Skip this token id as it's already been bought
           }
-          throw new Error(`Failed to get pallet listing! ${errorMsg}`);
-        }
-        const palletListingResponseData = await palletListingResponse.json();
-  
-        if (isValidListing(palletListingResponseData) && !isProcessingQueue) {
-          console.log("Listing valid! Sneiping...")
-          executionQueue.push({ senderAddress, palletListingResponseData, restoredWallet });
-          processQueue();
+
+          const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v1/nfts/"+ process.env.CONTRACT_ADDRESS + "?get_tokens=true&token_id=" + tokenId + "&token_id_exact=true");
+          if (!palletListingResponse.ok) {
+            let errorMsg = "";
+            try {
+                const errorData = await palletListingResponse.json();
+                errorMsg = errorData.message || JSON.stringify(errorData); 
+            } catch (parseError) {
+                errorMsg = palletListingResponse.statusText;
+            }
+            throw new Error(`Failed to get pallet listing! ${errorMsg}`);
+          }
+          const palletListingResponseData = await palletListingResponse.json();
+    
+          if (isValidListing(palletListingResponseData) && !isProcessingQueue) {
+            console.log("Listing valid for token id: " + tokenId + "! Sneiping...")
+            executionQueue.push({ senderAddress, palletListingResponseData, restoredWallet });
+            processQueue();
+          }
         }
       }
     } catch (error){
@@ -96,7 +110,7 @@ async function executeContract(senderAddress, palletListingResponseData, restore
             },
             "nft": {
                 "address": process.env.CONTRACT_ADDRESS,
-                "token_id": process.env.TOKEN_ID
+                "token_id": palletListingResponseData.tokens[0].id
             }
         }
     };
@@ -113,9 +127,14 @@ async function executeContract(senderAddress, palletListingResponseData, restore
       const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
       const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", msg, "auto", "sneiper", totalFunds );
       if(result.transactionHash){
-        console.log("Sneipe successful! Tx hash: " + result.transactionHash);
-        clearAllIntervals(); 
-        process.exit(0);
+        boughtTokenIds.add(palletListingResponseData.tokens[0].id_int);
+        console.log("Sneipe successful for token id:" + palletListingResponseData.tokens[0].id_int + ", Tx hash: " + result.transactionHash);
+    
+        if (boughtTokenIds.size === targetTokenIds.size) {
+            console.log("All tokens have been successfully bought. Exiting...");
+            clearAllIntervals();
+            process.exit(0);
+        }
       }
       else {
         console.log("Sneipe unsuccessful!")

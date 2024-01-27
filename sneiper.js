@@ -184,7 +184,7 @@ async function main() {
       const senderAddress = accounts[0].address; // Get address
         //Run sneiper based on polling time
 
-        const pollingFrequency = parseInt(process.env.POLLING_FREQUENCY, 10) * 1000;
+        const pollingFrequency = parseInt(process.env.POLLING_FREQUENCY) * 1000;
         if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
           const intervalId = setInterval(() => sneiper(senderAddress, restoredWallet), pollingFrequency);
           pollingIntervalIds.push(intervalId);

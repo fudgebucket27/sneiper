@@ -29,3 +29,10 @@ Snipe NFTs on SEI. Works with Pallet.
    POLLING_FREQUENCY= in seconds, how often to check pallet for listings
    
 5. To run sneiper, in terminal run: npm start run
+
+# Contributing
+Pull requests are welcome! 
+
+# TO DO
+1. Support for dagora
+2. Suport for multiple token ids

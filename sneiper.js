@@ -185,6 +185,7 @@ async function executeContractMultiple(senderAddress, palletListingResponseData,
 
       if (result.transactionHash) {
           console.log("Sneipe successful! Tx hash: " + result.transactionHash);
+          console.log("All tokens have been successfully bought. Exiting...");
           clearAllIntervals();
           process.exit(0);
       } else {

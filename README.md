@@ -2,8 +2,8 @@
 Snipe NFTs on SEI. Works with Pallet.
 
 # Features
-1. Target a Collection and multiple NFTs to buy them under a certain price point
-2. Target a Collection and buy multiple NFTs that fall under a certain price point
+1. Target a Collection and buy specific multiple NFTs that fall under a certain price point
+2. Target a Collection and buy any multiple NFTs that fall under a certain price point
 
 # Installation
 1. Install node js, npm and git

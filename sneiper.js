@@ -261,10 +261,6 @@ async function executeContractAuto(senderAddress, palletListingResponseData, res
       console.log("Sneipe unsuccessful! " + error.message);
     }
   }
-
-  console.log("All tokens have been processed. Exiting...");
-  clearAllIntervals();
-  process.exit(0);
 }
 
 async function main() {

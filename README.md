@@ -19,7 +19,7 @@ Snipe NFTs on SEI. Works with Pallet.
    ```bash
    npm install
    ```
-5. In the sneiper folder, create a ".env" file with the following settings
+5. In the sneiper folder, create a ".env" file with the following settings. ([Example .env file](https://github.com/fudgebucket27/sneiper/blob/main/.env.example))
    ```text
    RECOVERY_PHRASE=your recovery phrase, use a burner
    RPC_URL= the SEI rpc url

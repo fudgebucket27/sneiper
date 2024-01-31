@@ -264,13 +264,22 @@ async function executeContractAuto(senderAddress, palletListingResponseData, res
 }
 
 async function main() {
-  try {
-      console.log("Sneiper watching listings...");
+  try {    
       const restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE); // Restore wallet
       const accounts = await restoredWallet.getAccounts(); // Get accounts
       const senderAddress = accounts[0].address; // Get address
-        //Run sneiper based on polling time
-
+      
+      if(process.env.MODE === 'MINT'){
+        console.log("Checking if you hold any FrankenFrens...");
+        var isHolder = await checkifHolder(senderAddress);
+        if(isHolder){
+          console.log("You are a holder so you will not be charged any fees for every successful mint!")
+        }
+        else {
+          console.log("You are not a holder so a fee of 0.1 SEI will be charged for every successful mint!")
+        }
+      } else if (process.env.MODE === "BUY"){
+        console.log("Sneiper watching listings...");
         const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
         if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
           const intervalId = setInterval(() => sneiper(senderAddress, restoredWallet), pollingFrequency);
@@ -278,6 +287,10 @@ async function main() {
         } else {
             console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
         }
+      }
+      else{
+        console.log("Invalid MODE! Try BUY or MINT");
+      }
     } catch (error) {
       console.error("Error initializing wallet: " + error.message);
   }
@@ -288,3 +301,20 @@ function clearAllIntervals() {
 }
 
 main()
+
+async function checkifHolder(address) {
+  try {
+    const client = await getSigningCosmWasmClient(process.env.RPC_URL);
+
+    let tokensHeld = await client.queryContractSmart("sei1fxhhxflcxpaexwtu8rsuz3xjd9nzsnxy6uqkz55lare3ev2cc5ws2zdcnr", {
+      tokens: {
+        owner: address
+      }
+    });
+    console.log("You hold " + tokensHeld.tokens.length + " FrankenFrens.")
+    return tokensHeld.tokens.length > 0;
+  } catch (error) {
+    console.error("Error checking if FrankenFren holder:", error);
+    return false;
+  }
+}

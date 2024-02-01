@@ -2,9 +2,9 @@
   "name": "sneiper",
   "version": "1.0.0",
   "description": "Snipe NFTS on SEI",
-  "main": "sneiper.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node sneiper.js"
+    "start": "node index.js"
   },
   "type": "module",
   "repository": {

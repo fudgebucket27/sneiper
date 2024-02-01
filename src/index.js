@@ -1,7 +1,7 @@
 import { pollingIntervalIds } from './config.js';
 import { getHoldings, getMintDetailsFromUrl, getCollectionConfig, getHashedAddress} from './helpers.js';
 import { generateMerkleProof } from './merkle.js';
-import { sneiper } from './sneiper.js';
+import { buySneiper } from './buy-sneiper.js';
 import { restoreWallet } from "@sei-js/core";
 
 
@@ -66,7 +66,7 @@ async function main() {
             console.log("\nSneiper watching marketplace listings...");
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
-                const intervalId = setInterval(() => sneiper(senderAddress, restoredWallet), pollingFrequency);
+                const intervalId = setInterval(() => buySneiper(senderAddress, restoredWallet), pollingFrequency);
                 pollingIntervalIds.push(intervalId);
             } else {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");

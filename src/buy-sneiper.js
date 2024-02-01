@@ -2,7 +2,7 @@ import { isValidListing, clearAllIntervals } from './helpers.js';
 import { getSigningCosmWasmClient } from "@sei-js/core";
 import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueueStatus, targetTokenIds } from './config.js';
 
-export async function sneiper(senderAddress, restoredWallet) {
+export async function buySneiper(senderAddress, restoredWallet) {
     try {
       if(process.env.TOKEN_ID === "SWEEP" || process.env.TOKEN_ID === "AUTO") {
         const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v2/nfts/" + process.env.CONTRACT_ADDRESS +"?get_tokens=true&token_id_exact=false&buy_now_only=true&min_price_only=false&not_for_sale=false&less_than_price=" + process.env.PRICE_LIMIT + "&sort_by_price=asc&sort_by_id=asc&page=1&page_size=25");

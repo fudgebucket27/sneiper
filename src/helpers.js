@@ -32,7 +32,7 @@ export async function checkIfHolder(address) {
         console.log("You hold " + tokensHeld.tokens.length + " FrankenFrens.");
         return tokensHeld.tokens.length > 0;
     } catch (error) {
-        console.error("Error checking if FrankenFren holder:", error);
+        console.error("Error checking if FrankenFrens holder:", error);
         return false;
     }
 }

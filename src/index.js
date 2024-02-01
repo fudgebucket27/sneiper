@@ -22,7 +22,7 @@ async function main() {
             } else {
                 console.log("You are not a holder so a fee of 0.1 SEI will be charged for every successful mint!")
             }
-            console.log(`Retrieveing mint details from ${process.env.MINT_URL}`)
+            console.log(`Retrieving mint details from ${process.env.MINT_URL}`)
             const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
             if(mintDetails){
                 console.log(`Mint details found..\nCollection Name: ${mintDetails.u2}\nContract Address: ${mintDetails.s_}`);

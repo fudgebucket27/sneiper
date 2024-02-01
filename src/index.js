@@ -25,7 +25,7 @@ async function main() {
             console.log(`Retrieveing mint details from ${process.env.MINT_URL}`)
             const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
             if(mintDetails){
-                console.log(`Mint details found..\nContract Address: ${mintDetails.s_}`);
+                console.log(`Mint details found..\nCollection Name: ${mintDetails.u2}\nContract Address: ${mintDetails.s_}`);
             }else{
                 console.log("Mint details not found...is this a lighthouse mint site?")
             }

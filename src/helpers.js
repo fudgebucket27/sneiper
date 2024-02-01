@@ -2,6 +2,7 @@ import { getSigningCosmWasmClient } from "@sei-js/core";
 import { pollingIntervalIds } from './config.js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import {keccak_256} from '@noble/hashes/sha3';
 
 const basePath = "static/js"
 
@@ -19,7 +20,7 @@ export function clearAllIntervals() {
     pollingIntervalIds.forEach((id) => clearInterval(id));
 }
 
-export async function checkIfHolder(address) {
+export async function getHoldings(address) {
     try {
         const client = await getSigningCosmWasmClient(process.env.RPC_URL);
 
@@ -35,6 +36,27 @@ export async function checkIfHolder(address) {
         console.error("Error checking if FrankenFrens holder:", error);
         return 0;
     }
+}
+
+export async function getCollectionConfig(collectionAddress) {
+    try {
+        const client = await getSigningCosmWasmClient(process.env.RPC_URL);
+
+        let collectionConfig = await client.queryContractSmart("sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d", {
+            get_collection: {
+                collection: collectionAddress
+            }
+        });
+        return collectionConfig;
+    } catch (error) {
+        console.error("Error checking collection config: ", error);
+        return null;
+    }
+}
+
+export function getHashedAddress(address){
+    const hashedAddress = Array.from(Buffer.from(keccak_256(address)))
+    return hashedAddress;
 }
 
 export async function getMintDetailsFromUrl(url){

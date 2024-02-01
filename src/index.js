@@ -1,7 +1,9 @@
 import { pollingIntervalIds } from './config.js';
-import { checkIfHolder, getMintDetailsFromUrl} from './helpers.js';
+import { getHoldings, getMintDetailsFromUrl, getCollectionConfig, getHashedAddress} from './helpers.js';
+import { generateMerkleProof } from './merkle.js';
 import { sneiper } from './sneiper.js';
 import { restoreWallet } from "@sei-js/core";
+
 
 async function main() {
     try {    
@@ -16,8 +18,8 @@ async function main() {
         if(process.env.MODE === 'MINT'){
             console.log("Sneiper in MINT mode");
             console.log("Checking if you hold any FrankenFrens...");
-            const isHolder = await checkIfHolder(senderAddress);
-            const needsToPayFee = true;
+            const isHolder = await getHoldings(senderAddress);
+            let needsToPayFee = true;
             if(isHolder >= 5){
                 console.log("You hold at least 5 FrankenFrens so you will not be charged any fees for every successful mint!");
                 needsToPayFee = false;
@@ -28,9 +30,30 @@ async function main() {
             const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
             if(mintDetails){
                 console.log(`Mint details found..\nCollection Name: ${mintDetails.u2}\nContract Address: ${mintDetails.s_}`);
+                console.log("Getting collection config...");
+                const collectionConfig = await getCollectionConfig(mintDetails.s_);
+                const hashedAddress = getHashedAddress(senderAddress);
+                if(collectionConfig){
+                    console.log(`Collection config found...`);
+                    collectionConfig.mint_groups.forEach((group) => {
+                            const allowlistDetails = mintDetails.Xx.find(element => element.name === group.name);
+                            
+                            console.log(`Found mint group: ${allowlistDetails.name}`);
+                            generateMerkleProof(allowlistDetails?.allowlist ?? [], senderAddress);
+                            if(group.merkle_root !== "" && group.merkle_root !== null )
+                            {
+
+                            }
+                    });
+                }
+                else{
+                    console.log(`Collection config not found...`);
+                }
+
             }else{
                 console.log("Mint details not found...is this a lighthouse mint site?")
             }
+
         } else if (process.env.MODE === "BUY"){
             console.log("Sneiper in BUY mode:" 
              + "\nwith contract address: " + process.env.CONTRACT_ADDRESS 

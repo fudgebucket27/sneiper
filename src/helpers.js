@@ -41,11 +41,11 @@ export async function getMintDetailsFromUrl(url){
     const htmlData = await getMintSiteHtml(url);
     if (htmlData) {
         const $ = cheerio.load(htmlData);
-        const scripts = $('script[src]').toArray(); // Convert to array for iteration
+        const scripts = $('script[src]').toArray();
         for (const element of scripts) {
             const src = $(element).attr('src');
             if (src && src.includes(basePath)) {
-                return await getMintDetails(url, src); // Using await within a for...of loop
+                return await getMintDetails(url, src); 
             }
         }
     }
@@ -55,7 +55,6 @@ function findMintDetails(jsContent){
     const regex = /const r=JSON\.parse\('((?:\\.|[^'\\])*)'\)/;
     const match = jsContent.match(regex);
     if (match && match.length > 1) {
-        // Using match[1] since it's the first capturing group
         const jsonString = match[1].replace(/\\'/g, "'");
         try {
             const jsonObject = JSON.parse(jsonString);

@@ -3,11 +3,6 @@ import {keccak_256} from '@noble/hashes/sha3';
 
 export function generateMerkleProof(wallets,address)
 {
-    if (wallets.length === 0) {
-        console.log("This mint group has no allow list..")
-        return null;
-    }
-
     if (wallets.indexOf(address) === -1) {
         console.log("Address not found in mint group..")
         return null;

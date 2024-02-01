@@ -37,11 +37,11 @@ async function main() {
                     console.log(`Collection config found...`);
                     collectionConfig.mint_groups.forEach((group) => {
                             const allowlistDetails = mintDetails.Xx.find(element => element.name === group.name);
-                            
                             console.log(`Found mint group: ${allowlistDetails.name}`);
-                            generateMerkleProof(allowlistDetails?.allowlist ?? [], senderAddress);
-                            if(group.merkle_root !== "" && group.merkle_root !== null )
-                            {
+                            if(group.merkle_root !== "" && group.merkle_root !== null ){
+                                generateMerkleProof(allowlistDetails.allowlist, senderAddress);
+                            }else{
+                                console.log("No allow list for group..")
 
                             }
                     });

@@ -1,5 +1,5 @@
 import { pollingIntervalIds } from './config.js';
-import { checkIfHolder} from './helpers.js';
+import { checkIfHolder, getMintDetailsFromUrl} from './helpers.js';
 import { sneiper } from './sneiper.js';
 import { restoreWallet } from "@sei-js/core";
 
@@ -22,6 +22,13 @@ async function main() {
             } else {
                 console.log("You are not a holder so a fee of 0.1 SEI will be charged for every successful mint!")
             }
+            console.log(`Retrieveing mint details from ${process.env.MINT_URL}`)
+            const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
+            if(mintDetails){
+                console.log(`Mint details found..\nContract Address: ${mintDetails.s_}`);
+            }else{
+                console.log("Mint details not found...is this a lighthouse mint site?")
+            }
         } else if (process.env.MODE === "BUY"){
             console.log("Sneiper in BUY mode:" 
              + "\nwith contract address: " + process.env.CONTRACT_ADDRESS 
@@ -43,7 +50,7 @@ async function main() {
             console.log("Invalid MODE! Try BUY or MINT");
         }
     } catch (error) {
-        console.error("Error initializing wallet: " + error.message);
+        console.error("Error: " + error.message);
     }
 }
 

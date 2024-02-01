@@ -4,8 +4,7 @@ import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueu
 
 export async function sneiper(senderAddress, restoredWallet) {
     try {
-      //Getting data from pallet API
-      if(process.env.TOKEN_ID === "SWEEP") {
+      if(process.env.TOKEN_ID === "SWEEP" || process.env.TOKEN_ID === "AUTO") {
         const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v2/nfts/" + process.env.CONTRACT_ADDRESS +"?get_tokens=true&token_id_exact=false&buy_now_only=true&min_price_only=false&not_for_sale=false&less_than_price=" + process.env.PRICE_LIMIT + "&sort_by_price=asc&sort_by_id=asc&page=1&page_size=25");
         if (!palletListingResponse.ok) {
           let errorMsg = "";
@@ -23,24 +22,6 @@ export async function sneiper(senderAddress, restoredWallet) {
           executionQueue.push({ senderAddress, palletListingResponseData, restoredWallet });
           processQueue();
         }
-      } else if(process.env.TOKEN_ID === "AUTO") {
-        const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v2/nfts/" + process.env.CONTRACT_ADDRESS +"?get_tokens=true&token_id_exact=false&buy_now_only=true&min_price_only=false&not_for_sale=false&less_than_price=" + process.env.PRICE_LIMIT + "&sort_by_price=asc&sort_by_id=asc&page=1&page_size=25");
-        if (!palletListingResponse.ok) {
-          let errorMsg = "";
-          try {
-              const errorData = await palletListingResponse.json();
-              errorMsg = errorData.message || JSON.stringify(errorData); 
-          } catch (parseError) {
-              errorMsg = palletListingResponse.statusText;
-          }
-          throw new Error(`Failed to get pallet listings! ${errorMsg}. Retrying...`);
-        }
-        const palletListingResponseData = await palletListingResponse.json();
-        if (palletListingResponseData.count > 0 && !isProcessingQueue) {
-          console.log("Listing valid! Sneiping...")
-          executionQueue.push({ senderAddress, palletListingResponseData, restoredWallet });
-          processQueue();
-        }
       } else {
         const tokenIds = process.env.TOKEN_ID.split(',').map(id => parseInt(id.trim(), 10));
 
@@ -48,7 +29,6 @@ export async function sneiper(senderAddress, restoredWallet) {
           if (boughtTokenIds.has(tokenId)) {
             continue; // Skip this token id as it's already been bought
           }
-
           const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v1/nfts/"+ process.env.CONTRACT_ADDRESS + "?get_tokens=true&token_id=" + tokenId + "&token_id_exact=true");
           if (!palletListingResponse.ok) {
             let errorMsg = "";

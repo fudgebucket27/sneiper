@@ -23,8 +23,15 @@ async function main() {
                 console.log("You are not a holder so a fee of 0.1 SEI will be charged for every successful mint!")
             }
         } else if (process.env.MODE === "BUY"){
-            console.log("Sneiper in BUY mode");
-            console.log("Sneiper watching marketplace listings...");
+            console.log("Sneiper in BUY mode:" 
+             + "\nwith contract address: " + process.env.CONTRACT_ADDRESS 
+             + "\nwith token id: " + process.env.TOKEN_ID 
+             + "\nwith buy limit: " + process.env.BUY_LIMIT 
+             + "\nwith price limit: " + process.env.PRICE_LIMIT 
+             + "\nwith gas limit: " + process.env.GAS_LIMIT 
+             + "\nwith polling frequency: " + process.env.POLLING_FREQUENCY
+            );
+            console.log("\nSneiper watching marketplace listings...");
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
                 const intervalId = setInterval(() => sneiper(senderAddress, restoredWallet), pollingFrequency);

@@ -51,23 +51,6 @@ export async function getMintDetailsFromUrl(url){
     }
 };
 
-function findMintDetails(jsContent){
-    const regex = /const r=JSON\.parse\('((?:\\.|[^'\\])*)'\)/;
-    const match = jsContent.match(regex);
-    if (match && match.length > 1) {
-        const jsonString = match[1].replace(/\\'/g, "'");
-        try {
-            const jsonObject = JSON.parse(jsonString);
-            return jsonObject;
-        } catch (error) {
-            console.error("Error parsing mint details string:", error);
-            return null;
-        }
-    } else {
-        console.log("Mint details not found!");
-        return null;
-    }
-};
 
 async function getMintSiteHtml(url){
     try {
@@ -90,5 +73,26 @@ async function getMintDetails (url, src){
         return null;
     }
 };
+
+
+function findMintDetails(jsContent){
+    const regex = /const r=JSON\.parse\('((?:\\.|[^'\\])*)'\)/;
+    const match = jsContent.match(regex);
+    if (match && match.length > 1) {
+        const jsonString = match[1].replace(/\\'/g, "'");
+        try {
+            const jsonObject = JSON.parse(jsonString);
+            return jsonObject;
+        } catch (error) {
+            console.error("Error parsing mint details string:", error);
+            return null;
+        }
+    } else {
+        console.log("Mint details not found!");
+        return null;
+    }
+};
+
+
 
 

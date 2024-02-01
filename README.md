@@ -22,6 +22,7 @@ Snipe NFTs on SEI. Works with Pallet.
 5. In the sneiper folder, create a ".env" file with the following settings. [An example file is include here.](https://github.com/fudgebucket27/sneiper/blob/main/.env.example)
    ```text
    RECOVERY_PHRASE=your recovery phrase, use a burner
+   MODE=set to BUY to snipe on pallet. set to MINT to snipe lighthouse mints.
    RPC_URL= the SEI rpc url
    CONTRACT_ADDRESS=the contract address for the collection
    TOKEN_ID=the token id for the NFT, you can add multiple token ids, just seperate them with a comma, or use SWEEP to search the first 25 NFTs in the collection that fall under the PRICE_LIMIT. or use AUTO to keep buying 1 NFT at a time under the PRICE_LIMIT until the BUY_LIMIT is reached. 

@@ -17,10 +17,10 @@ async function main() {
             console.log("Sneiper in MINT mode");
             console.log("Checking if you hold any FrankenFrens...");
             var isHolder = await checkIfHolder(senderAddress);
-            if(isHolder){
-                console.log("You are a holder so you will not be charged any fees for every successful mint!")
+            if(isHolder >= 5){
+                console.log("You hold at least 5 FrankenFrens so you will not be charged any fees for every successful mint!")
             } else {
-                console.log("You are not a holder so a fee of 0.1 SEI will be charged for every successful mint!")
+                console.log("You do not hold at least 5 FrankenFrens so a fee of 0.1 SEI will be charged for every successful mint!")
             }
             console.log(`Retrieving mint details from ${process.env.MINT_URL}`)
             const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);

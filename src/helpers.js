@@ -30,10 +30,10 @@ export async function checkIfHolder(address) {
         });
 
         console.log("You hold " + tokensHeld.tokens.length + " FrankenFrens.");
-        return tokensHeld.tokens.length > 0;
+        return tokensHeld.tokens.length;
     } catch (error) {
         console.error("Error checking if FrankenFrens holder:", error);
-        return false;
+        return 0;
     }
 }
 

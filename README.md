@@ -4,7 +4,7 @@ Snipe NFTs on SEI.
 # Features
 1. Target a Collection on Pallet and BUY specific multiple NFTs that fall under a certain price point
 2. Target a Collection on Pallet and BUY any multiple NFTs that fall under a certain price point
-3. Target a Lighthouse Mint site and MINT NFTs. 
+3. Target a Lighthouse Mint site and MINT NFTs based on a mint limit per phase and mint limit overall total.
 
 ## Mint mode fees
 Mint mode will incur a fee, if you do not hold at least 5 of NFTs from my FrankenFrens collection on SEI. You will be charged 0.1 SEI per successful mint. 

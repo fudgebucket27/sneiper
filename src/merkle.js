@@ -1,4 +1,4 @@
-import MerkleTree from "merkletreejs";
+import {MerkleTree} from "merkletreejs";
 import {keccak_256} from '@noble/hashes/sha3';
 
 export function generateMerkleProof(wallets,address)
@@ -16,7 +16,7 @@ export function generateMerkleProof(wallets,address)
     //const merkleRoot = tree.getRoot().toString('hex')
     
     // Generate Merkle proof
-    const proof = tree.getProof(Buffer.from(keccak_256(wallet))).map(element => element.data.toString('hex'))
+    const proof = tree.getProof(Buffer.from(keccak_256(address))).map(element => element.data.toString('hex'))
     const merkleProof = proof.map((p) => Array.from(Buffer.from(p, 'hex')))
     return merkleProof;
 }

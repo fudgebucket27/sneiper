@@ -3,8 +3,8 @@ import { generateMerkleProof } from './merkle.js';
 import { isProcessingQueue, executionQueue, updateProcessingQueueStatus, mintedTokens, addMintedTokenSuccess } from './config.js';
 
 const lightHouseContractAddress = "sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d";
-const frankenFrensFeeAddress = "sei1hdahrkwwh9rex89de0mtskl3n5wsnqkd8qpn4p";
-const frankenFrensFeeAmount = "100000"; //0.1 SEI
+const frankenFrensFeeAddress = "sei1t403lg45sl5n02jlah7zjaw2rdtuayh4nfh352";
+const frankenFrensFeeAmount = "100000"; //0.1 SEI per successful mint
 const mintLimitTotal = parseInt(process.env.MINT_LIMIT_TOTAL, 10);
 
 export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmClient) {
@@ -33,7 +33,7 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
                           const merkleProof = generateMerkleProof(allowlistDetails.allowlist, senderAddress); 
                           const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                           if(isMintPhaseCurrent && merkleProof){
-                            console.log(`Mint phase current for group: ${groupName}!`);
+                            console.log(`Mint phase current for group and in allowlist for mint group: ${groupName}!`);
                             executionQueue.push({senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
                             await processQueue();
                           } else{
@@ -53,6 +53,7 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
                       }
                   }
               }
+              updateProcessingQueueStatus(false);
             }
             else{
                 console.log(`Collection config not found...`);

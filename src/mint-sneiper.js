@@ -1,11 +1,12 @@
 import { clearAllIntervals, getMintDetailsFromUrl, getCollectionConfig, getHashedAddress} from './helpers.js';
 import { generateMerkleProof } from './merkle.js';
 import { getSigningCosmWasmClient } from "@sei-js/core";
-import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueueStatus, targetTokenIds } from './config.js';
+import { isProcessingQueue, executionQueue, updateProcessingQueueStatus, mintedTokens, addMintedTokenSuccess } from './config.js';
 
 const lightHouseContractAddress = "sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d";
 const frankenFrensFeeAddress = "sei1hdahrkwwh9rex89de0mtskl3n5wsnqkd8qpn4p";
 const frankenFrensFeeAmount = "100000"; //0.1 SEI
+const mintLimitTotal = parseInt(process.env.MINT_LIMIT_TOTAL, 10);
 
 export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
     try {
@@ -89,8 +90,7 @@ export async function processQueue() {
   updateProcessingQueueStatus(false);
 }
 
-  
-  export async function executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee) {
+export async function executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee) {
     try {
         const msg =  {
           "mint_native": {
@@ -110,10 +110,13 @@ export async function processQueue() {
           amount: finalAmountWithLighthouseFee.toString()
         }];
         
+
+
         const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
         const result = await signingCosmWasmClient.execute(senderAddress, lightHouseContractAddress, msg, "auto", "sneiper", unitPrice == "0" ? null : totalFunds );
+        
         if(result.transactionHash){
-          boughtTokenIds.add("success");
+          addMintedTokenSuccess("success");
           console.log(`Sneipe successful!Tx hash: ${result.transactionHash}`);
           if(needsToPayFee)
           {
@@ -133,16 +136,8 @@ export async function processQueue() {
             }catch (error){
               console.log("FrankenFrens fee transfer unsuccesful: " + error.message + ". You have not been charged.");
             }finally {
-              if (boughtTokenIds.size ===  parseInt(process.env.MINT_LIMIT_TOTAL, 10)) {
-                console.log("All tokens have been successfully bought. Exiting...");
-                clearAllIntervals();
-                process.exit(0);
-              }
+           
             }
-          }else if (boughtTokenIds.size ===  parseInt(process.env.MINT_LIMIT_TOTAL, 10)) {
-              console.log("All tokens have been successfully bought. Exiting...");
-              clearAllIntervals();
-              process.exit(0);
           }
         }
         else {
@@ -150,5 +145,13 @@ export async function processQueue() {
         }
       } catch (error) {
         console.log("Sneipe unsuccessful! " + error.message);
+      } finally {
+
+      }
+
+      if (mintedTokens.length ===  mintLimitTotal) {
+        console.log("All tokens have been successfully bought. Exiting...");
+        clearAllIntervals();
+        process.exit(0);
       }
   }

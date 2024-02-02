@@ -46,4 +46,3 @@ Pull requests are welcome!
 
 # TO DO
 1. Support for dagora
-2. Lighthouse mint sniper

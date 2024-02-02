@@ -143,8 +143,7 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
         
         if(mintedTokens.length > 0){
           console.log(`Sneipe successful for ${mintedTokens.length} NFTs...Tx hash: ${result.transactionHash}`);
-          if(needsToPayFee)
-          {
+          if(needsToPayFee){
             try {
               const finalFrankenFrensFeeAmount = parseFloat(frankenFrensFeeAmount) * mintedTokens.length;
               const convertedFeeAmount = (finalFrankenFrensFeeAmount / 1000000).toString();

@@ -4,6 +4,8 @@ import { getSigningCosmWasmClient } from "@sei-js/core";
 import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueueStatus, targetTokenIds } from './config.js';
 
 const lightHouseContractAddress = "sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d";
+const frankenFrensFeeAddress = "sei1hdahrkwwh9rex89de0mtskl3n5wsnqkd8qpn4p";
+const frankenFrensFeeAmount = "100000"; //0.1 SEI
 
 export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
     try {
@@ -110,7 +112,26 @@ export async function processQueue() {
         if(result.transactionHash){
           boughtTokenIds.add("success");
           console.log(`Sneipe successful!Tx hash: ${result.transactionHash}`);
-          if (boughtTokenIds.size ===  process.env.MINT_LIMIT_PER_PHASE) {
+          if(needsToPayFee)
+          {
+            console.log(`You do not hold enough FrankenFrens...A fee of 0.1 SEI is being sent as this was a succesful mint...`)
+            try {
+              const feeFunds = [{
+                denom: 'usei',
+                amount: frankenFrensFeeAmount
+              }];
+              const feeResult = await signingCosmWasmClient.sendTokens(senderAddress, frankenFrensFeeAddress, feeFunds, "auto", "fee for FrankenFrens mint sniper");
+              if(feeResult.transactionHash){
+                console.log("FrankenFrens fee sent. Thank you.")
+              }
+              else{
+                console.log("FrankenFrens fee not sent due to an issue. You have not been charged.")
+              }
+            }catch (error){
+              console.log("FrankenFrens fee transfer unsuccesful: " + error.message + ". You have not been charged.");
+            }
+          }
+          if (boughtTokenIds.size ===  parseInt(process.env.MINT_LIMIT_PER_PHASE, 10)) {
               console.log("All tokens have been successfully bought. Exiting...");
               clearAllIntervals();
               process.exit(0);

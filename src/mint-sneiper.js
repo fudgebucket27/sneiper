@@ -77,29 +77,32 @@ export async function processQueue() {
 
   updateProcessingQueueStatus(true);
   const {senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient} = executionQueue.shift();
-  for (let i = 0; i < process.env.MINT_LIMIT_PER_PHASE; i++){
-    try {
-      console.log("Sneiping...");
-      await executeContract(senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient);
-    } catch (error) {
-        console.log("Sneipe unsuccessful! " + error.message);
-    } finally {
-    }
+  try{
+    console.log("Sneiping...");
+    await executeContract(senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient);
+  } catch (error) {
+    console.log("Sneipe unsuccessful! " + error.message);
+  } finally {
+
   }
   updateProcessingQueueStatus(false);
 }
 
 export async function executeContract(senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient) {
     try {
-        const msg =  {
-          "mint_native": {
-            "collection": contractAddress,
-            "group" : groupName,
-            "hashed_address" : hashedAddress,
-            "merkle_proof" : merkleProof,
-            "recipient" : senderAddress
-          }
+      const instruction = {
+        contractAddress: lightHouseContractAddress,
+        msg: {
+            mint_native: {
+                collection: contractAddress,
+                group: groupName,
+                recipient: senderAddress,
+                merkle_proof: merkleProof,
+                hashed_address: hashedAddress
+            }
+        }
       };
+
         const unitPriceNumber = parseFloat(unitPrice);
         const lighthouseFeeNumber = unitPrice == "0" ? parseFloat("0") : parseFloat("1500000"); //if unit price is 0, no light house fee
         const finalAmountWithLighthouseFee = unitPriceNumber + lighthouseFeeNumber; //Add 1.5 SEI for Lighthouse fee
@@ -109,18 +112,46 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
           amount: finalAmountWithLighthouseFee.toString()
         }];
 
-        const result = await signingCosmWasmClient.execute(senderAddress, lightHouseContractAddress, msg, "auto", "sneiper", unitPrice == "0" ? null : totalFunds );
+        if(unitPrice != "0")
+        {
+          instruction.funds = totalFunds;
+        }
+        let instructions = [];
+
+        for(let i = 0; i < process.env.MINT_LIMIT_PER_PHASE; i++)
+        {
+          instructions.push(instruction);
+        }
+
+        const result = await signingCosmWasmClient.executeMultiple(senderAddress, instructions, "auto")
+      
+
+        const logs = result.logs
+        for (const log of logs) {
+            const events = log.events
+            for (const event of events) {
+                if (event.type === 'wasm') {
+                    for (const attribute of event.attributes) {
+                        if (attribute.key === 'token_id') {
+                            addMintedTokenSuccess(attribute.value);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         
-        if(result.transactionHash){
-          addMintedTokenSuccess("success");
-          console.log(`Sneipe successful!Tx hash: ${result.transactionHash}`);
+        if(mintedTokens.length > 0){
+          console.log(`Sneipe successful for ${mintedTokens.length} NFTs...Tx hash: ${result.transactionHash}`);
           if(needsToPayFee)
           {
-            console.log(`You do not hold enough FrankenFrens...A fee of 0.1 SEI is being sent as this was a succesful mint...`)
             try {
+              const finalFrankenFrensFeeAmount = parseFloat(frankenFrensFeeAmount) * mintedTokens.length;
+              const convertedFeeAmount = (finalFrankenFrensFeeAmount / 1000000).toString();
+              console.log(`You do not hold enough FrankenFrens...A fee of ${convertedFeeAmount} SEI is being sent as there were ${mintedTokens.length} succesful mints...`)
               const feeFunds = [{
                 denom: 'usei',
-                amount: frankenFrensFeeAmount
+                amount: finalFrankenFrensFeeAmount.toString()
               }];
               const feeResult = await signingCosmWasmClient.sendTokens(senderAddress, frankenFrensFeeAddress, feeFunds, "auto", "fee for FrankenFrens mint sniper");
               if(feeResult.transactionHash){
@@ -135,8 +166,7 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
            
             }
           }
-        }
-        else {
+        }else {
           console.log("Sneipe unsuccessful!")
         }
       } catch (error) {

@@ -181,7 +181,7 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
 
       }
 
-      if (mintedTokens.length ===  mintLimitTotal) {
+      if (mintedTokens.length >=  mintLimitTotal) {
         console.log("All tokens have been successfully bought. Exiting...");
         clearAllIntervals();
         process.exit(0);

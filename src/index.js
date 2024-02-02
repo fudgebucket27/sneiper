@@ -1,7 +1,7 @@
 import { pollingIntervalIds } from './config.js';
-import { getHoldings, getMintDetailsFromUrl, getCollectionConfig, getHashedAddress} from './helpers.js';
-import { generateMerkleProof } from './merkle.js';
+import { getHoldings} from './helpers.js';
 import { buySneiper } from './buy-sneiper.js';
+import { mintSneiper } from './mint-sneiper.js';
 import { restoreWallet } from "@sei-js/core";
 
 
@@ -26,34 +26,13 @@ async function main() {
             } else {
                 console.log("You do not hold at least 5 FrankenFrens so a fee of 0.1 SEI will be charged for every successful mint!");
             }
-            console.log(`Retrieving mint details from ${process.env.MINT_URL}`)
-            const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
-            if(mintDetails){
-                console.log(`Mint details found..\nCollection Name: ${mintDetails.u2}\nContract Address: ${mintDetails.s_}`);
-                console.log("Getting collection config...");
-                const collectionConfig = await getCollectionConfig(mintDetails.s_);
-                const hashedAddress = getHashedAddress(senderAddress);
-                if(collectionConfig){
-                    console.log(`Collection config found...`);
-                    collectionConfig.mint_groups.forEach((group) => {
-                            const allowlistDetails = mintDetails.Xx.find(element => element.name === group.name);
-                            console.log(`Found mint group: ${allowlistDetails.name}`);
-                            if(group.merkle_root !== "" && group.merkle_root !== null ){
-                                generateMerkleProof(allowlistDetails.allowlist, senderAddress);
-                            }else{
-                                console.log("No allow list for group..")
-
-                            }
-                    });
-                }
-                else{
-                    console.log(`Collection config not found...`);
-                }
-
-            }else{
-                console.log("Mint details not found...is this a lighthouse mint site?")
+            const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
+            if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
+                const intervalId = setInterval(() => mintSneiper(senderAddress, restoredWallet, needsToPayFee), pollingFrequency);
+                pollingIntervalIds.push(intervalId);
+            } else {
+                console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
             }
-
         } else if (process.env.MODE === "BUY"){
             console.log("Sneiper in BUY mode:" 
              + "\nwith contract address: " + process.env.CONTRACT_ADDRESS 

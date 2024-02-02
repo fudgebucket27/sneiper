@@ -3,6 +3,8 @@ import { generateMerkleProof } from './merkle.js';
 import { getSigningCosmWasmClient } from "@sei-js/core";
 import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueueStatus, targetTokenIds } from './config.js';
 
+const lightHouseContractAddress = "sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d";
+
 export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
     try {
       if(!isProcessingQueue){
@@ -14,6 +16,7 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
             console.log(`Mint details found..\nCollection Name: ${mintDetails.u2}\nContract Address: ${mintDetails.s_}`);
             console.log("Getting collection config...");
             const collectionConfig = await getCollectionConfig(mintDetails.s_);
+            const contractAddress = mintDetails.s_;
             let hashedAddress = null;
             if(collectionConfig){
               console.log(`Collection config found...`);
@@ -21,22 +24,24 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
                   const allowlistDetails = mintDetails.Xx.find(element => element.name === group.name);
                   if (allowlistDetails) {
                       console.log(`Found mint group: ${allowlistDetails.name}`);
+                      const groupName = group.name;
+                      const unitPrice = group.unit_price;
                       if (group.merkle_root !== "" && group.merkle_root !== null) {
                           hashedAddress = getHashedAddress(senderAddress);
-                          const merkleproof = generateMerkleProof(allowlistDetails.allowlist, senderAddress); 
+                          const merkleProof = generateMerkleProof(allowlistDetails.allowlist, senderAddress); 
                           const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
-                          if(isMintPhaseCurrent && merkleproof){
-                            executionQueue.push({ senderAddress, restoredWallet });
+                          if(isMintPhaseCurrent && merkleProof){
+                            executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee});
                             await processQueue();
                           } else{
                             console.log("Not in mint group or mint phase not current!");
                           }                        
-
                       } else {
-                          console.log("No allow list for group..");
+                          console.log(`No allow list for group: ${groupName}`);
                           const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
+                          const merkleProof = null;
                           if(isMintPhaseCurrent){
-                            executionQueue.push({ senderAddress, restoredWallet });
+                            executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee});
                             await processQueue();
                           } else{
                             console.log("Mint phase not current!");
@@ -67,11 +72,11 @@ export async function processQueue() {
   }
 
   updateProcessingQueueStatus(true);
-  const { senderAddress, restoredWallet } = executionQueue.shift();
+  const {senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee} = executionQueue.shift();
   
   try {
-      console.log("Processing queue");
-    
+    console.log("Sneiping...");
+    await executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee)
   } catch (error) {
       console.log("Sneipe unsuccessful! " + error.message);
   } finally {
@@ -80,37 +85,32 @@ export async function processQueue() {
 }
 
   
-  export async function executeContract(senderAddress, palletListingResponseData, restoredWallet) {
+  export async function executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee) {
     try {
         const msg =  {
-          "buy_now": {
-              "expected_price": {
-                  "amount": palletListingResponseData.tokens[0].auction.price[0].amount,
-                  "denom": "usei"
-              },
-              "nft": {
-                  "address": process.env.CONTRACT_ADDRESS,
-                  "token_id": palletListingResponseData.tokens[0].id
-              }
+          "mint_native": {
+            "collection": contractAddress,
+            "group" : groupName,
+            "hashed_address" : hashedAddress,
+            "merkle_proof" : merkleProof,
+            "recipient" : senderAddress
           }
       };
-  
-        const amountString = palletListingResponseData.tokens[0].auction.price[0].amount;
-        const amountNumber = parseFloat(amountString);
-        const finalPalletAmount = amountNumber + (amountNumber * 0.02); //Add 2% for pallet fee
+        const unitPriceNumber = parseFloat(unitPrice);
+        const lighthouseFeeNumber = unitPrice == "0" ? parseFloat("0") : parseFloat("1500000"); //if unit price is 0, no light house fee
+        const finalAmountWithLighthouseFee = unitPriceNumber + lighthouseFeeNumber; //Add 1.5 SEI for Lighthouse fee
   
         const totalFunds = [{
           denom: 'usei',
-          amount: finalPalletAmount.toString()
+          amount: finalAmountWithLighthouseFee.toString()
         }];
         
         const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
-        const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", msg, "auto", "sneiper", totalFunds );
+        const result = await signingCosmWasmClient.execute(senderAddress, lightHouseContractAddress, msg, "auto", "sneiper", totalFunds );
         if(result.transactionHash){
-          boughtTokenIds.add(palletListingResponseData.tokens[0].id_int);
-          console.log("Sneipe successful for token id:" + palletListingResponseData.tokens[0].id_int + ", Tx hash: " + result.transactionHash);
-      
-          if (boughtTokenIds.size === targetTokenIds.size || boughtTokenIds.size ===  process.env.BUY_LIMIT ) {
+          boughtTokenIds.add("success");
+          console.log(`Sneipe successful!Tx hash: ${result.transactionHash}`);
+          if (boughtTokenIds.size ===  process.env.MINT_LIMIT_PER_PHASE) {
               console.log("All tokens have been successfully bought. Exiting...");
               clearAllIntervals();
               process.exit(0);
@@ -122,102 +122,4 @@ export async function processQueue() {
       } catch (error) {
         console.log("Sneipe unsuccessful! " + error.message);
       }
-  }
-  
-  export async function executeContractMultiple(senderAddress, palletListingResponseData, restoredWallet) {
-    try {
-  
-      let batchBids = {
-        "batch_bids": {
-            "bids": []
-        }
-      };
-      
-      const batchBidsSliced = palletListingResponseData.tokens.slice(0, process.env.BUY_LIMIT).map(token => ({
-        "bid_type": {
-          "buy_now": {
-            "expected_price": {
-              "amount": token.auction.price[0].amount.toString(),
-              "denom": "usei"
-            }
-          }
-        },
-        "nft": {
-          "address": process.env.CONTRACT_ADDRESS,
-          "token_id": token.id_int.toString()
-        }
-      }));
-  
-        batchBids.batch_bids.bids = batchBidsSliced;
-  
-        let totalAmount = 0;
-        batchBidsSliced.forEach(bid => {
-          let amount = parseFloat(bid.bid_type.buy_now.expected_price.amount);
-          totalAmount += amount + (amount * 0.02); // Add amount with 2% fee to total
-        });
-        const totalFunds = [{
-            denom: 'usei',
-            amount: totalAmount.toString()
-        }];
-        const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, { gasPrice: process.env.GAS_LIMIT + "usei" });
-  
-        const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", batchBids, "auto", "sneiper", totalFunds);
-  
-        if (result.transactionHash) {
-            console.log("Sneipe successful! Tx hash: " + result.transactionHash);
-            console.log("All tokens have been successfully bought. Exiting...");
-            clearAllIntervals();
-            process.exit(0);
-        } else {
-            console.log("Sneipe unsuccessful!");
-        }
-    } catch (error) {
-        console.log("Sneipe unsuccessful! " + error.message);
-    }
-  }
-  
-  export async function executeContractAuto(senderAddress, palletListingResponseData, restoredWallet) {
-    for (const token of palletListingResponseData.tokens) {
-      try {
-        const bid = {
-          "buy_now": {
-            "expected_price": {
-              "amount": token.auction.price[0].amount.toString(),
-              "denom": "usei"
-            },
-            "nft": {
-              "address": process.env.CONTRACT_ADDRESS,
-              "token_id": token.id.toString() 
-            }
-          }
-        };
-  
-        const amountNumber = parseFloat(token.auction.price[0].amount);
-        const finalAmount = amountNumber + (amountNumber * 0.02); // 2% fee
-  
-        const totalFunds = [{
-            denom: 'usei',
-            amount: finalAmount.toString()
-        }];
-  
-        const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, { gasPrice: process.env.GAS_LIMIT + "usei" });
-  
-        const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", bid, "auto", "sneiper", totalFunds);
-  
-        if (result.transactionHash) {
-            boughtTokenIds.add(token.id_int);
-            const buyLimit = parseInt(process.env.BUY_LIMIT, 10); 
-            console.log("Sneipe successful for token id:" + token.id_int + ", Tx hash: " + result.transactionHash);
-            if (boughtTokenIds.size ===  buyLimit) {
-                console.log("All tokens have been successfully bought. Exiting...");
-                clearAllIntervals();
-                process.exit(0);
-            }
-        } else {
-            console.log(`Sneipe unsuccessful for token id: ${token.id}`);
-        }
-      } catch (error) {
-        console.log("Sneipe unsuccessful! " + error.message);
-      }
-    }
   }

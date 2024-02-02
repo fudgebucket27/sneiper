@@ -17,7 +17,7 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
         if(mintDetails){
             console.log(`Mint details found..\nCollection Name: ${mintDetails.u2}\nContract Address: ${mintDetails.s_}`);
             console.log("Getting collection config...");
-            const collectionConfig = await getCollectionConfig(mintDetails.s_);
+            const collectionConfig = await getCollectionConfig(mintDetails.s_, signingCosmWasmClient);
             const contractAddress = mintDetails.s_;
             let hashedAddress = null;
             if(collectionConfig){

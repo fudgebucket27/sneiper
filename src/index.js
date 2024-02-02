@@ -19,7 +19,7 @@ async function main() {
         if(process.env.MODE === 'MINT'){
             console.log("Sneiper in MINT mode");
             console.log("Checking if you hold any FrankenFrens...");
-            const isHolder = await getHoldings(senderAddress);
+            const isHolder = await getHoldings(senderAddress, signingCosmWasmClient);
             let needsToPayFee = true;
             if(isHolder >= 5){
                 console.log("You hold at least 5 FrankenFrens so you will not be charged any fees for every successful mint!");

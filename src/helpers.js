@@ -1,4 +1,3 @@
-import { getSigningCosmWasmClient } from "@sei-js/core";
 import { pollingIntervalIds } from './config.js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -20,11 +19,10 @@ export function clearAllIntervals() {
     pollingIntervalIds.forEach((id) => clearInterval(id));
 }
 
-export async function getHoldings(address) {
+export async function getHoldings(address, signingCosmWasmClient) {
     try {
-        const client = await getSigningCosmWasmClient(process.env.RPC_URL);
-
-        let tokensHeld = await client.queryContractSmart("sei1fxhhxflcxpaexwtu8rsuz3xjd9nzsnxy6uqkz55lare3ev2cc5ws2zdcnr", {
+        
+        let tokensHeld = await signingCosmWasmClient.queryContractSmart("sei1fxhhxflcxpaexwtu8rsuz3xjd9nzsnxy6uqkz55lare3ev2cc5ws2zdcnr", {
             tokens: {
                 owner: address
             }
@@ -38,11 +36,9 @@ export async function getHoldings(address) {
     }
 }
 
-export async function getCollectionConfig(collectionAddress) {
+export async function getCollectionConfig(collectionAddress, signingCosmWasmClient) {
     try {
-        const client = await getSigningCosmWasmClient(process.env.RPC_URL);
-
-        let collectionConfig = await client.queryContractSmart("sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d", {
+        let collectionConfig = await signingCosmWasmClient.queryContractSmart("sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d", {
             get_collection: {
                 collection: collectionAddress
             }

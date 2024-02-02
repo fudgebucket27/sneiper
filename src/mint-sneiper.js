@@ -33,20 +33,22 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
                           const merkleProof = generateMerkleProof(allowlistDetails.allowlist, senderAddress); 
                           const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                           if(isMintPhaseCurrent && merkleProof){
+                            console.log(`Mint phase current for group: ${groupName}!`);
                             executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee});
                             await processQueue();
                           } else{
-                            console.log("Not in mint group or mint phase not current!");
+                            console.log(`Not in mint group: ${groupName}  or mint phase not current!`);
                           }                        
                       } else {
                           console.log(`No allow list for group: ${groupName}`);
                           const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                           const merkleProof = null;
                           if(isMintPhaseCurrent){
+                            console.log(`Mint phase current for group: ${groupName}!`);
                             executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee});
                             await processQueue();
                           } else{
-                            console.log("Mint phase not current!");
+                            console.log(`Mint phase not current for group: ${groupName}!`);
                           }
                       }
                   }

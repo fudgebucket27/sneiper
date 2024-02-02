@@ -1,6 +1,11 @@
 # sneiper
 Snipe NFTs on SEI.
 
+## Mint mode fees
+If you do not hold at least 5 of NFTs from my FrankenFrens collection on SEI. You will be charge 0.1 SEI per successful mint. 
+
+You can purchase a FrankenFren from here: https://pallet.exchange/collection/frankenfrens
+
 # Features
 1. Target a Collection on Pallet and buy specific multiple NFTs that fall under a certain price point
 2. Target a Collection on Pallet and buy any multiple NFTs that fall under a certain price point

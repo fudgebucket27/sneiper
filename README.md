@@ -23,6 +23,7 @@ Snipe NFTs on SEI. Works with Pallet.
    ```text
    RECOVERY_PHRASE=your recovery phrase, use a burner
    RPC_URL= the SEI rpc url
+   MINT_URL=eg https://www.seitarded.xyz //the url of the lighthouse mint site
    MODE=set to BUY to snipe on pallet. set to MINT to snipe lighthouse mints.
    MINT_LIMIT_PER_PHASE=eg 2 /the amount to mint per phase
    MINT_LIMIT_TOTAL=eg 4 /the total amount to mint overall across all phases

@@ -6,6 +6,7 @@ import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueu
 export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
     try {
       if(!isProcessingQueue){
+        const current_time = Math.floor(Date.now() / 1000);
         updateProcessingQueueStatus(true);
         console.log(`Retrieving mint details from ${process.env.MINT_URL}`)
         const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
@@ -21,13 +22,24 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
                   if (allowlistDetails) {
                       console.log(`Found mint group: ${allowlistDetails.name}`);
                       if (group.merkle_root !== "" && group.merkle_root !== null) {
-                          const merkleproof = generateMerkleProof(allowlistDetails.allowlist, senderAddress);                          
-                          executionQueue.push({ senderAddress, restoredWallet });
-                          await processQueue();
+                          const merkleproof = generateMerkleProof(allowlistDetails.allowlist, senderAddress); 
+                          const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
+                          if(isMintPhaseCurrent && merkleproof){
+                            executionQueue.push({ senderAddress, restoredWallet });
+                            await processQueue();
+                          } else{
+                            console.log("Not in mint group or mint phase not current!");
+                          }                        
+
                       } else {
                           console.log("No allow list for group..");
-                          executionQueue.push({ senderAddress, restoredWallet });
-                          await processQueue();
+                          const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
+                          if(isMintPhaseCurrent){
+                            executionQueue.push({ senderAddress, restoredWallet });
+                            await processQueue();
+                          } else{
+                            console.log("Mint phase not current!");
+                          }
                       }
                   }
               }

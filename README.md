@@ -25,7 +25,7 @@ You can purchase a FrankenFren from here: https://pallet.exchange/collection/fra
    ```bash
    npm install
    ```
-5. In the sneiper folder, create a ".env" file with the following settings. [An example file is include here.](https://github.com/fudgebucket27/sneiper/blob/main/.env.example)
+5. In the sneiper folder, create a ".env" file with the following settings. [An example file is include here.](https://github.com/fudgebucket27/sneiper/blob/main/.env.example). 
    ```text
    RECOVERY_PHRASE=       your recovery phrase, use a burner
    RPC_URL=               the SEI rpc url
@@ -40,8 +40,14 @@ You can purchase a FrankenFren from here: https://pallet.exchange/collection/fra
    GAS_LIMIT=             the gas limit, eg 0.1
    POLLING_FREQUENCY=     in seconds, how often to check pallet or the mint ui site for listings/contract changes
    ```
+
+   For mac and linux. You may need to run this command in terminal to create the ".env" file, you may need to show hidden items in the folder as well:
+   ```bash
+   touch .env
+   ```
+
    
-6. To run sneiper, in terminal run:
+7. To run sneiper, in terminal run:
    ```bash
    npm start run
    ```

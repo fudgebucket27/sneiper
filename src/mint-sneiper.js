@@ -171,6 +171,12 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
         }
       } catch (error) {
         console.log("Sneipe unsuccessful! " + error.message);
+        if(error.message.toUpperCase().includes("SOLD OUT"))
+        {
+          console.log("Collection SOLD OUT. Exiting...");
+          clearAllIntervals();
+          process.exit(0);
+        }
       } finally {
 
       }

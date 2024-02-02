@@ -15,20 +15,22 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
             const collectionConfig = await getCollectionConfig(mintDetails.s_);
             const hashedAddress = getHashedAddress(senderAddress);
             if(collectionConfig){
-                console.log(`Collection config found...`);
-                collectionConfig.mint_groups.forEach((group) => {
-                        const allowlistDetails = mintDetails.Xx.find(element => element.name === group.name);
-                        console.log(`Found mint group: ${allowlistDetails.name}`);
-                        if(group.merkle_root !== "" && group.merkle_root !== null ){
-                            const merkleproof = generateMerkleProof(allowlistDetails.allowlist, senderAddress);
-                            executionQueue.push({ senderAddress, restoredWallet });
-                            processQueue();
-                        }else{
-                            console.log("No allow list for group..");
-                            executionQueue.push({ senderAddress, restoredWallet });
-                            processQueue();
-                        }
-                });
+              console.log(`Collection config found...`);
+              for (const group of collectionConfig.mint_groups) {
+                  const allowlistDetails = mintDetails.Xx.find(element => element.name === group.name);
+                  if (allowlistDetails) {
+                      console.log(`Found mint group: ${allowlistDetails.name}`);
+                      if (group.merkle_root !== "" && group.merkle_root !== null) {
+                          const merkleproof = generateMerkleProof(allowlistDetails.allowlist, senderAddress);                          
+                          executionQueue.push({ senderAddress, restoredWallet });
+                          await processQueue();
+                      } else {
+                          console.log("No allow list for group..");
+                          executionQueue.push({ senderAddress, restoredWallet });
+                          await processQueue();
+                      }
+                  }
+              }
             }
             else{
                 console.log(`Collection config not found...`);
@@ -47,22 +49,23 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
 }
 
 export async function processQueue() {
-    if (isProcessingQueue || executionQueue.length === 0) {
-        return;
-    }
-  
-    updateProcessingQueueStatus(true);
-    const { senderAddress, restoredWallet } = executionQueue.shift();
-  
-    try {
-      console.log("IN QUEUE");
-    } catch (error) {
-        console.log("Sneipe unsuccessful! " + error.message);
-    } finally {
-       updateProcessingQueueStatus(false);
-       processQueue();
-    }
+  if (executionQueue.length === 0) {
+      return;
   }
+
+  updateProcessingQueueStatus(true);
+  const { senderAddress, restoredWallet } = executionQueue.shift();
+  
+  try {
+      console.log("Processing queue");
+    
+  } catch (error) {
+      console.log("Sneipe unsuccessful! " + error.message);
+  } finally {
+      updateProcessingQueueStatus(false);
+  }
+}
+
   
   export async function executeContract(senderAddress, palletListingResponseData, restoredWallet) {
     try {

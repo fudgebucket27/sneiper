@@ -1,6 +1,5 @@
 import { clearAllIntervals, getMintDetailsFromUrl, getCollectionConfig, getHashedAddress} from './helpers.js';
 import { generateMerkleProof } from './merkle.js';
-import { getSigningCosmWasmClient } from "@sei-js/core";
 import { isProcessingQueue, executionQueue, updateProcessingQueueStatus, mintedTokens, addMintedTokenSuccess } from './config.js';
 
 const lightHouseContractAddress = "sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d";
@@ -8,7 +7,7 @@ const frankenFrensFeeAddress = "sei1hdahrkwwh9rex89de0mtskl3n5wsnqkd8qpn4p";
 const frankenFrensFeeAmount = "100000"; //0.1 SEI
 const mintLimitTotal = parseInt(process.env.MINT_LIMIT_TOTAL, 10);
 
-export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
+export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee, signingCosmWasmClient) {
     try {
       if(!isProcessingQueue){
         const current_time = Math.floor(Date.now() / 1000);
@@ -35,7 +34,7 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
                           const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                           if(isMintPhaseCurrent && merkleProof){
                             console.log(`Mint phase current for group: ${groupName}!`);
-                            executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee});
+                            executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
                             await processQueue();
                           } else{
                             console.log(`Not in mint group: ${groupName}  or mint phase not current!`);
@@ -46,7 +45,7 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
                           const merkleProof = null;
                           if(isMintPhaseCurrent){
                             console.log(`Mint phase current for group: ${groupName}!`);
-                            executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee});
+                            executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
                             await processQueue();
                           } else{
                             console.log(`Mint phase not current for group: ${groupName}!`);
@@ -77,11 +76,11 @@ export async function processQueue() {
   }
 
   updateProcessingQueueStatus(true);
-  const {senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee} = executionQueue.shift();
+  const {senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient} = executionQueue.shift();
   for (let i = 0; i < process.env.MINT_LIMIT_PER_PHASE; i++){
     try {
       console.log("Sneiping...");
-      await executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee)
+      await executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient)
     } catch (error) {
         console.log("Sneipe unsuccessful! " + error.message);
     } finally {
@@ -90,7 +89,7 @@ export async function processQueue() {
   updateProcessingQueueStatus(false);
 }
 
-export async function executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee) {
+export async function executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient) {
     try {
         const msg =  {
           "mint_native": {
@@ -109,10 +108,7 @@ export async function executeContract(senderAddress, restoredWallet, hashedAddre
           denom: 'usei',
           amount: finalAmountWithLighthouseFee.toString()
         }];
-        
 
-
-        const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
         const result = await signingCosmWasmClient.execute(senderAddress, lightHouseContractAddress, msg, "auto", "sneiper", unitPrice == "0" ? null : totalFunds );
         
         if(result.transactionHash){

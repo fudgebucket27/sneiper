@@ -3,6 +3,7 @@ import { getHoldings} from './helpers.js';
 import { buySneiper } from './buy-sneiper.js';
 import { mintSneiper } from './mint-sneiper.js';
 import { restoreWallet } from "@sei-js/core";
+import { getSigningCosmWasmClient } from "@sei-js/core";
 
 
 async function main() {
@@ -13,7 +14,7 @@ async function main() {
         const accounts = await restoredWallet.getAccounts();
         // Get sender address
         const senderAddress = accounts[0].address;
-        
+        const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
         // Handle different modes
         if(process.env.MODE === 'MINT'){
             console.log("Sneiper in MINT mode");
@@ -28,7 +29,7 @@ async function main() {
             }
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
-                const intervalId = setInterval(() => mintSneiper(senderAddress, restoredWallet, needsToPayFee), pollingFrequency);
+                const intervalId = setInterval(() => mintSneiper(senderAddress, restoredWallet, needsToPayFee, signingCosmWasmClient), pollingFrequency);
                 pollingIntervalIds.push(intervalId);
             } else {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");

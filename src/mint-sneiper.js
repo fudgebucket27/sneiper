@@ -14,7 +14,7 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
             console.log(`Mint details found..\nCollection Name: ${mintDetails.u2}\nContract Address: ${mintDetails.s_}`);
             console.log("Getting collection config...");
             const collectionConfig = await getCollectionConfig(mintDetails.s_);
-            const hashedAddress = getHashedAddress(senderAddress);
+            let hashedAddress = null;
             if(collectionConfig){
               console.log(`Collection config found...`);
               for (const group of collectionConfig.mint_groups) {
@@ -22,6 +22,7 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee) {
                   if (allowlistDetails) {
                       console.log(`Found mint group: ${allowlistDetails.name}`);
                       if (group.merkle_root !== "" && group.merkle_root !== null) {
+                          hashedAddress = getHashedAddress(senderAddress);
                           const merkleproof = generateMerkleProof(allowlistDetails.allowlist, senderAddress); 
                           const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                           if(isMintPhaseCurrent && merkleproof){

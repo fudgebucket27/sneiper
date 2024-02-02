@@ -2,7 +2,7 @@
 Snipe NFTs on SEI.
 
 ## Mint mode fees
-If you do not hold at least 5 of NFTs from my FrankenFrens collection on SEI. You will be charge 0.1 SEI per successful mint. 
+If you do not hold at least 5 of NFTs from my FrankenFrens collection on SEI. You will be charged 0.1 SEI per successful mint. 
 
 You can purchase a FrankenFren from here: https://pallet.exchange/collection/frankenfrens
 

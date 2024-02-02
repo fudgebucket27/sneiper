@@ -7,7 +7,7 @@ const frankenFrensFeeAddress = "sei1hdahrkwwh9rex89de0mtskl3n5wsnqkd8qpn4p";
 const frankenFrensFeeAmount = "100000"; //0.1 SEI
 const mintLimitTotal = parseInt(process.env.MINT_LIMIT_TOTAL, 10);
 
-export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee, signingCosmWasmClient) {
+export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmClient) {
     try {
       if(!isProcessingQueue){
         const current_time = Math.floor(Date.now() / 1000);
@@ -34,7 +34,7 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee, s
                           const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                           if(isMintPhaseCurrent && merkleProof){
                             console.log(`Mint phase current for group: ${groupName}!`);
-                            executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
+                            executionQueue.push({senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
                             await processQueue();
                           } else{
                             console.log(`Not in mint group: ${groupName}  or mint phase not current!`);
@@ -45,7 +45,7 @@ export async function mintSneiper(senderAddress, restoredWallet,needsToPayFee, s
                           const merkleProof = null;
                           if(isMintPhaseCurrent){
                             console.log(`Mint phase current for group: ${groupName}!`);
-                            executionQueue.push({senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
+                            executionQueue.push({senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
                             await processQueue();
                           } else{
                             console.log(`Mint phase not current for group: ${groupName}!`);
@@ -76,11 +76,11 @@ export async function processQueue() {
   }
 
   updateProcessingQueueStatus(true);
-  const {senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient} = executionQueue.shift();
+  const {senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient} = executionQueue.shift();
   for (let i = 0; i < process.env.MINT_LIMIT_PER_PHASE; i++){
     try {
       console.log("Sneiping...");
-      await executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient)
+      await executeContract(senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient);
     } catch (error) {
         console.log("Sneipe unsuccessful! " + error.message);
     } finally {
@@ -89,7 +89,7 @@ export async function processQueue() {
   updateProcessingQueueStatus(false);
 }
 
-export async function executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient) {
+export async function executeContract(senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient) {
     try {
         const msg =  {
           "mint_native": {

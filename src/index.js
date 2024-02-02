@@ -29,7 +29,7 @@ async function main() {
             }
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
-                const intervalId = setInterval(() => mintSneiper(senderAddress, restoredWallet, needsToPayFee, signingCosmWasmClient), pollingFrequency);
+                const intervalId = setInterval(() => mintSneiper(senderAddress, needsToPayFee, signingCosmWasmClient), pollingFrequency);
                 pollingIntervalIds.push(intervalId);
             } else {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
@@ -46,7 +46,7 @@ async function main() {
             console.log("\nSneiper watching marketplace listings...");
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
-                const intervalId = setInterval(() => buySneiper(senderAddress, restoredWallet), pollingFrequency);
+                const intervalId = setInterval(() => buySneiper(senderAddress, signingCosmWasmClient), pollingFrequency);
                 pollingIntervalIds.push(intervalId);
             } else {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");

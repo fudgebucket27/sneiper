@@ -2,7 +2,7 @@ import { isValidListing, clearAllIntervals } from './helpers.js';
 import { getSigningCosmWasmClient } from "@sei-js/core";
 import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueueStatus, targetTokenIds } from './config.js';
 
-export async function buySneiper(senderAddress, restoredWallet) {
+export async function buySneiper(senderAddress, signingCosmWasmClient) {
     try {
       if(process.env.TOKEN_ID === "SWEEP" || process.env.TOKEN_ID === "AUTO") {
         const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v2/nfts/" + process.env.CONTRACT_ADDRESS +"?get_tokens=true&token_id_exact=false&buy_now_only=true&min_price_only=false&not_for_sale=false&less_than_price=" + process.env.PRICE_LIMIT + "&sort_by_price=asc&sort_by_id=asc&page=1&page_size=25");
@@ -19,7 +19,7 @@ export async function buySneiper(senderAddress, restoredWallet) {
         const palletListingResponseData = await palletListingResponse.json();
         if (palletListingResponseData.count > 0 && !isProcessingQueue) {
           console.log("Listings valid! Sneiping...")
-          executionQueue.push({ senderAddress, palletListingResponseData, restoredWallet });
+          executionQueue.push({ senderAddress, palletListingResponseData, signingCosmWasmClient});
           processQueue();
         }
       } else {
@@ -44,7 +44,7 @@ export async function buySneiper(senderAddress, restoredWallet) {
     
           if (isValidListing(palletListingResponseData) && !isProcessingQueue) {
             console.log("Listing valid for token id: " + tokenId + "! Sneiping...")
-            executionQueue.push({ senderAddress, palletListingResponseData, restoredWallet });
+            executionQueue.push({ senderAddress, palletListingResponseData, signingCosmWasmClient});
             processQueue();
           }
         }
@@ -60,17 +60,17 @@ export async function processQueue() {
     }
   
     updateProcessingQueueStatus(true);
-    const { senderAddress, palletListingResponseData, restoredWallet } = executionQueue.shift();
+    const { senderAddress, palletListingResponseData, signingCosmWasmClient} = executionQueue.shift();
   
     try {
       if(process.env.TOKEN_ID === "SWEEP"){
-        await executeContractMultiple(senderAddress, palletListingResponseData, restoredWallet);
+        await executeContractMultiple(senderAddress, palletListingResponseData, signingCosmWasmClient);
       }
       if(process.env.TOKEN_ID === "AUTO"){
-        await executeContractAuto(senderAddress, palletListingResponseData, restoredWallet);
+        await executeContractAuto(senderAddress, palletListingResponseData, signingCosmWasmClient);
       }
       else{
-        await executeContract(senderAddress, palletListingResponseData, restoredWallet);
+        await executeContract(senderAddress, palletListingResponseData, signingCosmWasmClient);
       }
     } catch (error) {
         console.log("Sneipe unsuccessful! " + error.message);
@@ -80,7 +80,7 @@ export async function processQueue() {
     }
   }
   
-  export async function executeContract(senderAddress, palletListingResponseData, restoredWallet) {
+  export async function executeContract(senderAddress, palletListingResponseData, signingCosmWasmClient) {
     try {
         const msg =  {
           "buy_now": {
@@ -104,7 +104,6 @@ export async function processQueue() {
           amount: finalPalletAmount.toString()
         }];
         
-        const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
         const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", msg, "auto", "sneiper", totalFunds );
         if(result.transactionHash){
           boughtTokenIds.add(palletListingResponseData.tokens[0].id_int);
@@ -124,7 +123,7 @@ export async function processQueue() {
       }
   }
   
-  export async function executeContractMultiple(senderAddress, palletListingResponseData, restoredWallet) {
+  export async function executeContractMultiple(senderAddress, palletListingResponseData, signingCosmWasmClient) {
     try {
   
       let batchBids = {
@@ -159,8 +158,7 @@ export async function processQueue() {
             denom: 'usei',
             amount: totalAmount.toString()
         }];
-        const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, { gasPrice: process.env.GAS_LIMIT + "usei" });
-  
+
         const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", batchBids, "auto", "sneiper", totalFunds);
   
         if (result.transactionHash) {
@@ -176,7 +174,7 @@ export async function processQueue() {
     }
   }
   
-  export async function executeContractAuto(senderAddress, palletListingResponseData, restoredWallet) {
+  export async function executeContractAuto(senderAddress, palletListingResponseData, signingCosmWasmClient) {
     for (const token of palletListingResponseData.tokens) {
       try {
         const bid = {
@@ -199,9 +197,7 @@ export async function processQueue() {
             denom: 'usei',
             amount: finalAmount.toString()
         }];
-  
-        const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, { gasPrice: process.env.GAS_LIMIT + "usei" });
-  
+   
         const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", bid, "auto", "sneiper", totalFunds);
   
         if (result.transactionHash) {

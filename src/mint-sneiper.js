@@ -75,15 +75,16 @@ export async function processQueue() {
 
   updateProcessingQueueStatus(true);
   const {senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee} = executionQueue.shift();
-  
-  try {
-    console.log("Sneiping...");
-    await executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee)
-  } catch (error) {
-      console.log("Sneipe unsuccessful! " + error.message);
-  } finally {
-      updateProcessingQueueStatus(false);
+  for (let i = 0; i < process.env.MINT_LIMIT_PER_PHASE; i++){
+    try {
+      console.log("Sneiping...");
+      await executeContract(senderAddress, restoredWallet, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee)
+    } catch (error) {
+        console.log("Sneipe unsuccessful! " + error.message);
+    } finally {
+    }
   }
+  updateProcessingQueueStatus(false);
 }
 
   
@@ -108,7 +109,7 @@ export async function processQueue() {
         }];
         
         const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
-        const result = await signingCosmWasmClient.execute(senderAddress, lightHouseContractAddress, msg, "auto", "sneiper", totalFunds );
+        const result = await signingCosmWasmClient.execute(senderAddress, lightHouseContractAddress, msg, "auto", "sneiper", unitPrice == "0" ? null : totalFunds );
         if(result.transactionHash){
           boughtTokenIds.add("success");
           console.log(`Sneipe successful!Tx hash: ${result.transactionHash}`);
@@ -129,9 +130,14 @@ export async function processQueue() {
               }
             }catch (error){
               console.log("FrankenFrens fee transfer unsuccesful: " + error.message + ". You have not been charged.");
+            }finally {
+              if (boughtTokenIds.size ===  parseInt(process.env.MINT_LIMIT_TOTAL, 10)) {
+                console.log("All tokens have been successfully bought. Exiting...");
+                clearAllIntervals();
+                process.exit(0);
+              }
             }
-          }
-          if (boughtTokenIds.size ===  parseInt(process.env.MINT_LIMIT_PER_PHASE, 10)) {
+          }else if (boughtTokenIds.size ===  parseInt(process.env.MINT_LIMIT_TOTAL, 10)) {
               console.log("All tokens have been successfully bought. Exiting...");
               clearAllIntervals();
               process.exit(0);

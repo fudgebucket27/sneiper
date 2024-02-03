@@ -65,7 +65,7 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
 
                 //Handle public
                 for (const group of collectionConfig.mint_groups) {
-                  if (group.merkle_root === null) {
+                  if (group.merkle_root == null) {
                       const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                       if (isMintPhaseCurrent) {
                           console.log(`Mint phase current for group: ${group.name}`);

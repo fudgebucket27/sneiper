@@ -23,7 +23,7 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
             if(collectionConfig){
               console.log(`Collection config found...`);
               for (const group of collectionConfig.mint_groups) {
-                  const allowlistDetails = mintDetails.Xx.find(element => element.name === group.name);
+                  const allowlistDetails = mintDetails.Xx.find(element => element.name.toUpperCase() === group.name.toUpperCase());
                   if (allowlistDetails) {
                       console.log(`Found mint group: ${allowlistDetails.name}`);
                       const groupName = group.name;

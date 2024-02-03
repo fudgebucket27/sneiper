@@ -1,5 +1,4 @@
 import { isValidListing, clearAllIntervals } from './helpers.js';
-import { getSigningCosmWasmClient } from "@sei-js/core";
 import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueueStatus, targetTokenIds } from './config.js';
 
 export async function buySneiper(senderAddress, signingCosmWasmClient) {

@@ -81,7 +81,7 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
                           });
                           await processQueue();
                       } else {
-                          console.log(`Mint phase not current for public group: ${group.name}`);
+                          console.log(`Mint phase not current for group: ${group.name}`);
                       }
                       continue;
                   }

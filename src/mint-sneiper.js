@@ -1,5 +1,5 @@
 import { clearAllIntervals, getMintDetailsFromUrl, getCollectionConfig, getHashedAddress} from './helpers.js';
-import { generateMerkleProof } from './merkle.js';
+import { generateMerkleProof, generateMerkleRoot, isMatchingMerkle } from './merkle.js';
 import { isProcessingQueue, executionQueue, updateProcessingQueueStatus, mintedTokens, addMintedTokenSuccess } from './config.js';
 
 const lightHouseContractAddress = "sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d";
@@ -22,35 +22,68 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
             let hashedAddress = null;
             if(collectionConfig){
               console.log(`Collection config found...`);
-              for (const group of collectionConfig.mint_groups) {
-                  const allowlistDetails = mintDetails.Xx.find(element => element.name.toUpperCase() === group.name.toUpperCase());
-                  if (allowlistDetails) {
-                      console.log(`Found mint group: ${allowlistDetails.name}`);
-                      const groupName = group.name;
-                      const unitPrice = group.unit_price;
-                      if (group.merkle_root !== "" && group.merkle_root !== null) {
-                          hashedAddress = getHashedAddress(senderAddress);
-                          const merkleProof = generateMerkleProof(allowlistDetails.allowlist, senderAddress); 
-                          const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
-                          if(isMintPhaseCurrent && merkleProof){
-                            console.log(`Mint phase current for group and in allowlist for mint group: ${groupName}!`);
-                            executionQueue.push({senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
-                            await processQueue();
-                          } else{
-                            console.log(`Not in mint group: ${groupName}  or mint phase not current!`);
-                          }                        
+
+                //Handle Allow list first
+                for (const allowlistDetail of mintDetails.Xx) {
+                  if(allowlistDetail.allowlist == null || allowlistDetail.allowlist.length === 0)
+                  {
+                    continue;
+                  }
+                  const senderMerkleRoot = generateMerkleRoot(allowlistDetail.allowlist, senderAddress);
+                  if (!senderMerkleRoot) {
+                      console.log(`Your address ${senderAddress} is not in the allowlist: ${allowlistDetail.name}`);
+                      continue; 
+                  }
+
+                  const group = collectionConfig.mint_groups.find(g => g.merkle_root && isMatchingMerkle(senderMerkleRoot, g.merkle_root));
+                  
+                  if (group) {
+                      console.log(`Matching mint group found for allowlist: ${allowlistDetail.name}`);
+                      const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
+                      
+                      if (isMintPhaseCurrent) {
+                          console.log(`Mint phase current for group: ${group.name}!`);
+                          const merkleProof = generateMerkleProof(allowlistDetail.allowlist, senderAddress);
+                          executionQueue.push({
+                              senderAddress, 
+                              hashedAddress: getHashedAddress(senderAddress), 
+                              merkleProof, 
+                              contractAddress, 
+                              groupName: group.name, 
+                              unitPrice: group.unit_price, 
+                              needsToPayFee, 
+                              signingCosmWasmClient
+                          });
+                          await processQueue();
                       } else {
-                          console.log(`No allow list for group: ${groupName}`);
-                          const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
-                          const merkleProof = null;
-                          if(isMintPhaseCurrent){
-                            console.log(`Mint phase current for group: ${groupName}!`);
-                            executionQueue.push({senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient});
-                            await processQueue();
-                          } else{
-                            console.log(`Mint phase not current for group: ${groupName}!`);
-                          }
+                          console.log(`Mint phase not current for group: ${group.name}!`);
                       }
+                  } else {
+                      console.log(`No matching mint group found for allowlist with generated Merkle root.`);
+                  }
+                }
+
+                //Handle public
+                for (const group of collectionConfig.mint_groups) {
+                  if (group.merkle_root === null) {
+                      const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
+                      if (isMintPhaseCurrent) {
+                          console.log(`Mint phase current for group: ${group.name}`);
+                          executionQueue.push({
+                              senderAddress, 
+                              hashedAddress: null, 
+                              merkleProof: null, 
+                              contractAddress, 
+                              groupName: group.name, 
+                              unitPrice: group.unit_price, 
+                              needsToPayFee, 
+                              signingCosmWasmClient
+                          });
+                          await processQueue();
+                      } else {
+                          console.log(`Mint phase not current for public group: ${group.name}`);
+                      }
+                      continue;
                   }
               }
               updateProcessingQueueStatus(false);

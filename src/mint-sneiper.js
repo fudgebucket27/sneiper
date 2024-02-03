@@ -15,16 +15,18 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
         console.log(`Retrieving mint details from ${process.env.MINT_URL}`)
         const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
         if(mintDetails){
-            console.log(`Mint details found..\nCollection Name: ${mintDetails.u2}\nContract Address: ${mintDetails.s_}`);
+          let collectionConfig = null;
+            let collectionName = mintDetails.u2 == null ? mintDetails.N9 : mintDetails.u2;
+            let contractAddress = mintDetails.s_ == null ? mintDetails.OK : mintDetails.s_;
+            console.log(`Mint details found..\nCollection Name: ${collectionName}\nContract Address: ${contractAddress}`);
             console.log("Getting collection config...");
-            const collectionConfig = await getCollectionConfig(mintDetails.s_, signingCosmWasmClient);
-            const contractAddress = mintDetails.s_;
+            collectionConfig = await getCollectionConfig(contractAddress, signingCosmWasmClient);
             let hashedAddress = null;
             if(collectionConfig){
               console.log(`Collection config found...`);
-
+              const allowlistDetails = mintDetails.Xx ?? mintDetails.MJ;
                 //Handle Allow list first
-                for (const allowlistDetail of mintDetails.Xx) {
+                for (const allowlistDetail of allowlistDetails) {
                   if(allowlistDetail.allowlist == null || allowlistDetail.allowlist.length === 0)
                   {
                     continue;

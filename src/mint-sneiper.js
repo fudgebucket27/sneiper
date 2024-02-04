@@ -15,16 +15,15 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
         console.log(`Retrieving mint details from ${process.env.MINT_URL}`)
         const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
         if(mintDetails){
-          let collectionConfig = null;
-            let collectionName = mintDetails.u2 == null ? mintDetails.N9 : mintDetails.u2;
-            let contractAddress = mintDetails.s_ == null ? mintDetails.OK : mintDetails.s_;
-            console.log(`Mint details found..\nCollection Name: ${collectionName}\nContract Address: ${contractAddress}`);
+            let collectionConfig = null;
+            let contractAddress = findContractAddress(mintDetails);
+            console.log(`Mint details found..\nContract Address: ${contractAddress}`);
             console.log("Getting collection config...");
             collectionConfig = await getCollectionConfig(contractAddress, signingCosmWasmClient);
             let hashedAddress = null;
             if(collectionConfig){
               console.log(`Collection config found...`);
-              const allowlistDetails = mintDetails.Xx ?? mintDetails.MJ;
+              const allowlistDetails = findAllowlistDetails(mintDetails);
                 //Handle Allow list first
                 for (const allowlistDetail of allowlistDetails) {
                   if(allowlistDetail.allowlist == null || allowlistDetail.allowlist.length === 0)
@@ -221,4 +220,34 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
         clearAllIntervals();
         process.exit(0);
       }
+}
+
+function findContractAddress(mintDetails)
+{
+  for (let prop in mintDetails) {
+    if (mintDetails.hasOwnProperty(prop) && isValidContractAddress(mintDetails[prop])) {
+        let contractAddress = mintDetails[prop];
+        return contractAddress;
+    }
   }
+}
+
+function isValidContractAddress(address) {
+  return /^sei1[a-zA-Z0-9]{58}$/.test(address);
+}
+
+function findAllowlistDetails(mintDetails) {
+  for (let prop in mintDetails) {
+      if (mintDetails.hasOwnProperty(prop)) {
+          const potentialAllowlist = mintDetails[prop];
+          if (Array.isArray(potentialAllowlist) && isValidAllowlist(potentialAllowlist)) {
+              return potentialAllowlist;
+          }
+      }
+  }
+  return null;
+}
+
+function isValidAllowlist(allowlist) {
+  return allowlist.length > 0;
+}

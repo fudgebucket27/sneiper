@@ -7,7 +7,7 @@ Snipe NFTs on SEI.
 3. Target a Lighthouse Mint site and MINT NFTs based on a mint limit per phase and mint limit overall total.
 
 ## Mint mode fees
-Mint mode will incur a fee, if you do not hold at least 5 of NFTs from my FrankenFrens collection on SEI. You will be charged 0.1 SEI per successful mint. 
+Mint mode will incur a fee, if you do not hold at least 5 NFTs from my FrankenFrens collection on SEI. You will be charged 0.1 SEI per successful mint. 
 
 You can purchase a FrankenFren from here: https://pallet.exchange/collection/frankenfrens
 
@@ -53,7 +53,7 @@ You can purchase a FrankenFren from here: https://pallet.exchange/collection/fra
    ```
 
 # How to update
-Run this command in folder of sneiper to grab the latest updates
+Run this command in the folder of sneiper to grab the latest updates
 
 ```bash
 git pull

@@ -51,6 +51,13 @@ You can purchase a FrankenFren from here: https://pallet.exchange/collection/fra
    ```bash
    npm start run
    ```
+
+# How to update
+Run this command in folder of sneiper to grab the latest updates
+
+```bash
+git pull
+```
    
 # Contributing
 Pull requests are welcome! 

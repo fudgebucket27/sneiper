@@ -4,16 +4,26 @@ import { buySneiper } from './buy-sneiper.js';
 import { mintSneiper } from './mint-sneiper.js';
 import { restoreWallet } from "@sei-js/core";
 import { getSigningCosmWasmClient } from "@sei-js/core";
-
+import {fromHex} from "@cosmjs/encoding";
+import {DirectSecp256k1Wallet} from "@cosmjs/proto-signing";
 
 async function main() {
     try {    
         // Restore wallet
-        const restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE);
-        // Get accounts
-        const accounts = await restoredWallet.getAccounts();
-        // Get sender address
-        const senderAddress = accounts[0].address;
+        let restoredWallet = null;
+        let senderAddress = null
+        
+        if(process.env.RECOVERY_PHRASE.includes(' ')){
+            restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE);
+            accounts = await restoredWallet.getAccounts();
+            senderAddress = accounts[0].address;
+        }else{
+            const privateKeyUint8array = fromHex(process.env.RECOVERY_PHRASE);
+            restoredWallet = await DirectSecp256k1Wallet.fromKey(privateKeyUint8array, "sei");
+            const [accounts] = await restoredWallet.getAccounts();
+            senderAddress = accounts.address;
+        }
+
         const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
         // Handle different modes
         if(process.env.MODE === 'MINT'){

@@ -1,4 +1,4 @@
-import { pollingIntervalIds } from './config.js';
+import { mintingIntervalIds, buyingIntervalIds } from './config.js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import {keccak_256} from '@noble/hashes/sha3';
@@ -16,7 +16,7 @@ export function isValidListing(palletListingResponseData) {
 }
 
 export function clearAllIntervals() {
-    pollingIntervalIds.forEach((id) => clearInterval(id));
+    buyingIntervalIds.forEach((id) => clearInterval(id));
 }
 
 export async function getHoldings(address, signingCosmWasmClient) {
@@ -110,6 +110,11 @@ function findMintDetails(jsContent){
         return null;
     }
 };
+
+export function getFormattedTimestamp() {
+    const now = new Date();
+    return now.toISOString();
+}
 
 
 

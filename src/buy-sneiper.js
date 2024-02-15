@@ -1,10 +1,10 @@
-import { isValidListing, clearAllIntervals } from './helpers.js';
-import { boughtTokenIds, isProcessingQueue, executionQueue, updateProcessingQueueStatus, targetTokenIds } from './config.js';
+import { clearAllIntervals, isValidListing} from './helpers.js';
+import { boughtTokenIds, isProcessingBuyQueue, executionQueue, updateProcessingBuyQueueStatus, targetTokenIds } from './config.js';
 
 export async function buySneiper(senderAddress, signingCosmWasmClient) {
     try {
       if(process.env.TOKEN_ID === "SWEEP" || process.env.TOKEN_ID === "AUTO") {
-        const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v2/nfts/" + process.env.CONTRACT_ADDRESS +"?get_tokens=true&token_id_exact=false&buy_now_only=true&min_price_only=false&not_for_sale=false&less_than_price=" + process.env.PRICE_LIMIT + "&sort_by_price=asc&sort_by_id=asc&page=1&page_size=25");
+        const palletListingResponse = await fetch(`https://api.prod.pallet.exchange/api/v2/nfts/${process.env.CONTRACT_ADDRESS}/tokens?token_id_exact=false&buy_now_only=true&timed_auction_only=false&not_for_sale=false&max_price=${process.env.PRICE_LIMIT}&sort_by_price=asc&sort_by_id=asc&page=1&page_size=25`);
         if (!palletListingResponse.ok) {
           let errorMsg = "";
           try {
@@ -16,7 +16,7 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
           throw new Error(`Failed to get pallet listings! ${errorMsg} Retrying...`);
         }
         const palletListingResponseData = await palletListingResponse.json();
-        if (palletListingResponseData.count > 0 && !isProcessingQueue) {
+        if (palletListingResponseData.count > 0 && !isProcessingBuyQueue) {
           console.log("Listings valid! Sneiping...")
           executionQueue.push({ senderAddress, palletListingResponseData, signingCosmWasmClient});
           processQueue();
@@ -41,7 +41,7 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
           }
           const palletListingResponseData = await palletListingResponse.json();
     
-          if (isValidListing(palletListingResponseData) && !isProcessingQueue) {
+          if (isValidListing(palletListingResponseData) && !isProcessingBuyQueue) {
             console.log("Listing valid for token id: " + tokenId + "! Sneiping...")
             executionQueue.push({ senderAddress, palletListingResponseData, signingCosmWasmClient});
             processQueue();
@@ -54,11 +54,11 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
 }
 
 export async function processQueue() {
-    if (isProcessingQueue || executionQueue.length === 0) {
+    if (isProcessingBuyQueue || executionQueue.length === 0) {
         return;
     }
   
-    updateProcessingQueueStatus(true);
+    updateProcessingBuyQueueStatus(true);
     const { senderAddress, palletListingResponseData, signingCosmWasmClient} = executionQueue.shift();
   
     try {
@@ -74,7 +74,7 @@ export async function processQueue() {
     } catch (error) {
         console.log("Sneipe unsuccessful! " + error.message);
     } finally {
-       updateProcessingQueueStatus(false);
+       updateProcessingBuyQueueStatus(false);
        processQueue();
     }
   }
@@ -205,7 +205,7 @@ export async function processQueue() {
             console.log("Sneipe successful for token id:" + token.id_int + ", Tx hash: " + result.transactionHash);
             if (boughtTokenIds.size ===  buyLimit) {
                 console.log("All tokens have been successfully bought. Exiting...");
-                clearAllIntervals();
+                //clearAllIntervals();
                 process.exit(0);
             }
         } else {

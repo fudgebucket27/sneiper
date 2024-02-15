@@ -28,7 +28,7 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
           if (boughtTokenIds.has(tokenId)) {
             continue; // Skip this token id as it's already been bought
           }
-          const palletListingResponse = await fetch("https://api.prod.pallet.exchange/api/v1/nfts/"+ process.env.CONTRACT_ADDRESS + "?get_tokens=true&token_id=" + tokenId + "&token_id_exact=true");
+          const palletListingResponse = await fetch(`https://api.prod.pallet.exchange/api/v2/nfts/${process.env.CONTRACT_ADDRESS}/tokens?token_id=${tokenId}&token_id_exact=true`);
           if (!palletListingResponse.ok) {
             let errorMsg = "";
             try {
@@ -42,7 +42,7 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
           const palletListingResponseData = await palletListingResponse.json();
     
           if (isValidListing(palletListingResponseData) && !isProcessingBuyQueue) {
-            console.log(`${getFormattedTimestamp()}:Listing valid for token id: " + ${tokenId} + "! Sneiping...`)
+            console.log(`${getFormattedTimestamp()}:Listing valid for token id: ${tokenId}! Sneiping...`)
             executionQueue.push({ senderAddress, palletListingResponseData, signingCosmWasmClient});
             processQueue();
           }

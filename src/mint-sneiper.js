@@ -210,7 +210,7 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
             }
           }
         }else {
-          console.log(`Sneipe unsuccessful!`)
+          console.log(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful!`)
         }
       } catch (error) {
         console.log(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful! ` + error.message);
@@ -230,7 +230,7 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
       }
 
       if (mintedTokens.length >=  mintLimitTotal) {
-        console.log("All tokens have been successfully bought. Exiting...");
+        console.log(`${senderAddress},${getFormattedTimestamp()}:All tokens have been successfully bought. Exiting...`);
         process.exit(0);
       }
 }

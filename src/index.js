@@ -9,16 +9,16 @@ import {DirectSecp256k1Wallet} from "@cosmjs/proto-signing";
 
 async function main() {
     try {    
-        // Restore wallet
         let restoredWallet = null;
         let senderAddress = null
         
+        //logic to choose between private key
         if(process.env.RECOVERY_PHRASE.includes(' ')){
             restoredWallet = await restoreWallet(process.env.RECOVERY_PHRASE);
             accounts = await restoredWallet.getAccounts();
             senderAddress = accounts[0].address;
         }else{
-            const privateKeyUint8array = fromHex(process.env.RECOVERY_PHRASE);
+            const privateKeyUint8array = fromHex(process.env.RECOVERY_PHRASE.substring(2));
             restoredWallet = await DirectSecp256k1Wallet.fromKey(privateKeyUint8array, "sei");
             const [accounts] = await restoredWallet.getAccounts();
             senderAddress = accounts.address;

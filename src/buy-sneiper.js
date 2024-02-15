@@ -72,7 +72,7 @@ export async function processQueue() {
         await executeContract(senderAddress, palletListingResponseData, signingCosmWasmClient);
       }
     } catch (error) {
-        console.log("Sneipe unsuccessful! " + error.message);
+        console.log(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
     } finally {
        updateProcessingBuyQueueStatus(false);
        processQueue();

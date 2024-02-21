@@ -10,18 +10,14 @@ if (process.env.TOKEN_ID && process.env.TOKEN_ID !== "SWEEP" && process.env.TOKE
     targetTokenIds = new Set(process.env.TOKEN_ID.split(',').map(id => parseInt(id.trim(), 10)));
 }
 
-export function addBuyingIntervalIds(intervalId)
-{
-    buyingIntervalIds.push(intervalId);
-}
 
 export function clearBuyingIntervalIds()
 {
-    buyingIntervalIds.forEach(intervalId => {
+    while (buyingIntervalIds.length > 0) {
+        const intervalId = buyingIntervalIds.pop();
         clearInterval(intervalId);
-    });
-
-    buyingIntervalIds = [];
+      }
+    console.log('Buying intervals cleared. Length is now:'+ buyingIntervalIds.length);
 }
 
 export function updateProcessingMintQueueStatus(value, senderAddress) {

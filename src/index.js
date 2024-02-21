@@ -1,5 +1,5 @@
-import { mintingIntervalIds, addBuyingIntervalIds} from './config.js';
-import { getHoldings, logMessage, getFormattedTimestamp} from './helpers.js';
+import { mintingIntervalIds} from './config.js';
+import { getHoldings, logMessage, getFormattedTimestamp, getShouldExitBuyMode, updateShouldExitBuyMode, updateBuyTimeoutId} from './helpers.js';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import { buySneiper } from './buy-sneiper.js';
@@ -8,6 +8,8 @@ import { restoreWallet } from "@sei-js/core";
 import { getSigningCosmWasmClient } from "@sei-js/core";
 import {fromHex} from "@cosmjs/encoding";
 import {DirectSecp256k1Wallet} from "@cosmjs/proto-signing";
+
+let buySneiperTimeoutId; 
 
 async function processConfig(config) {
     try {
@@ -57,8 +59,18 @@ async function processConfig(config) {
             logMessage(`\n${senderAddress},${getFormattedTimestamp()}:Sneiper watching marketplace listings...`);
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
-                const intervalId = setInterval(async () => await buySneiper(senderAddress, signingCosmWasmClient), pollingFrequency);
-                addBuyingIntervalIds(intervalId);
+                const buyFunction = async () => {
+                    if (!getShouldExitBuyMode()) { // `getShouldExitBuyMode` is a hypothetical function that fetches the current value
+                        await buySneiper(senderAddress, signingCosmWasmClient);
+                        buySneiperTimeoutId = setTimeout(buyFunction, pollingFrequency);
+                        updateBuyTimeoutId(buySneiperTimeoutId);
+                    }
+                    else{
+                        console.log("Exiting buy mode...");
+                        return;
+                    }
+                };
+                buyFunction();
             } else {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
             }
@@ -69,9 +81,9 @@ async function processConfig(config) {
         console.error("Error processing config: " + error.message);
     }
 }
-
 export async function main() {
     reloadEnv();
+    updateShouldExitBuyMode(false);
     let walletConfigs = process.env.RECOVERY_PHRASE ? process.env.RECOVERY_PHRASE.split(',') : [];
     if(process.env.MODE === 'MINT'){
         await Promise.allSettled(walletConfigs.map(config => processConfig(config.trim())));
@@ -87,3 +99,5 @@ const reloadEnv = () => {
         process.env[key] = envConfig[key]
     }
 }
+
+

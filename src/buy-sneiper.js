@@ -1,5 +1,5 @@
 import { clearAllIntervals, isValidListing, getFormattedTimestamp} from './helpers.js';
-import { boughtTokenIds, isProcessingBuyQueue, executionQueue, updateProcessingBuyQueueStatus, targetTokenIds } from './config.js';
+import { boughtTokenIds, isProcessingBuyQueue, executionQueue, updateProcessingBuyQueueStatus, targetTokenIds, clearBuyingIntervalIds } from './config.js';
 import { logMessage } from './helpers.js';
 
 export async function buySneiper(senderAddress, signingCosmWasmClient) {
@@ -111,7 +111,7 @@ export async function processQueue() {
       
           if (boughtTokenIds.size === targetTokenIds.size || boughtTokenIds.size ===  process.env.BUY_LIMIT ) {
               logMessage(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
-              clearAllIntervals();
+              clearBuyingIntervalIds();
               //process.exit(0);
           }
         }
@@ -164,7 +164,7 @@ export async function processQueue() {
         if (result.transactionHash) {
             logMessage(getFormattedTimestamp() + ":Sneipe successful! Tx hash: " + result.transactionHash);
             logMessage(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
-            clearAllIntervals();
+            clearBuyingIntervalIds();
             //process.exit(0);
         } else {
             logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful!");
@@ -206,7 +206,7 @@ export async function processQueue() {
             logMessage(getFormattedTimestamp() + ":Sneipe successful for token id:" + token.id_int + ", Tx hash: " + result.transactionHash);
             if (boughtTokenIds.size ===  buyLimit) {
                 logMessage(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
-                clearAllIntervals();
+                clearBuyingIntervalIds();
                 //process.exit(0);
             }
         } else {

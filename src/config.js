@@ -10,6 +10,20 @@ if (process.env.TOKEN_ID && process.env.TOKEN_ID !== "SWEEP" && process.env.TOKE
     targetTokenIds = new Set(process.env.TOKEN_ID.split(',').map(id => parseInt(id.trim(), 10)));
 }
 
+export function addBuyingIntervalIds(intervalId)
+{
+    buyingIntervalIds.push(intervalId);
+}
+
+export function clearBuyingIntervalIds()
+{
+    buyingIntervalIds.forEach(intervalId => {
+        clearInterval(intervalId);
+    });
+
+    buyingIntervalIds = [];
+}
+
 export function updateProcessingMintQueueStatus(value, senderAddress) {
     isProcessingMintQueue[senderAddress]= value; 
 }

@@ -1,4 +1,4 @@
-import { buyingIntervalIds, mintingIntervalIds} from './config.js';
+import { mintingIntervalIds, addBuyingIntervalIds} from './config.js';
 import { getHoldings, logMessage, getFormattedTimestamp} from './helpers.js';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -58,7 +58,7 @@ async function processConfig(config) {
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
                 const intervalId = setInterval(async () => await buySneiper(senderAddress, signingCosmWasmClient), pollingFrequency);
-                buyingIntervalIds.push(intervalId);
+                addBuyingIntervalIds(intervalId);
             } else {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
             }

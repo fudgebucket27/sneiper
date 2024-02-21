@@ -7,7 +7,7 @@ import { dirname } from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import {main} from './index.js';
-import { logBuffer } from './helpers.js';
+import { logBuffer, clearLogs } from './helpers.js';
 
 
 const app = express();
@@ -26,7 +26,7 @@ const getCurrentConfig = () => {
     const config = dotenv.parse(envFileContent); // Parses the .env content into an object
     return config;
   } catch (error) {
-    console.error('Error reading the .env file:', error);
+    console.error('Error reading the .env file. You will need to set it up using the configuration window!');
     return {};
   }
 };
@@ -84,6 +84,7 @@ app.post('/start', (req, res) => {
 
   // Start the main loop based on the mode
   if(mode === 'MINT' || mode === 'BUY') {
+    clearLogs();
     console.log('Starting in mode:', mode);
     main();
   }

@@ -1,14 +1,13 @@
-import { buyingIntervalIds, mintingIntervalIds, removeWallet} from './config.js';
-import { getHoldings, logMessage} from './helpers.js';
+import { buyingIntervalIds, mintingIntervalIds} from './config.js';
+import { getHoldings, logMessage, getFormattedTimestamp} from './helpers.js';
+import dotenv from 'dotenv';
+import fs from 'fs';
 import { buySneiper } from './buy-sneiper.js';
 import { mintSneiper } from './mint-sneiper.js';
 import { restoreWallet } from "@sei-js/core";
 import { getSigningCosmWasmClient } from "@sei-js/core";
 import {fromHex} from "@cosmjs/encoding";
 import {DirectSecp256k1Wallet} from "@cosmjs/proto-signing";
-
-
-export let walletConfigs = process.env.RECOVERY_PHRASE.split(',');
 
 async function processConfig(config) {
     try {
@@ -29,15 +28,15 @@ async function processConfig(config) {
         const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
 
         if(process.env.MODE === 'MINT'){
-            logMessage("Sneiper in MINT mode");
-            logMessage("Checking if you hold any FrankenFrens...");
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneiper in MINT mode`);
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Checking if you hold any FrankenFrens...`);
             const isHolder = await getHoldings(senderAddress, signingCosmWasmClient);
             let needsToPayFee = true;
             if(isHolder >= 5){
-                logMessage("You hold at least 5 FrankenFrens so you will not be charged any fees for every successful mint!");
+                logMessage(`${senderAddress},${getFormattedTimestamp()}:You hold at least 5 FrankenFrens so you will not be charged any fees for every successful mint`);
                 needsToPayFee = false;
             } else {
-                logMessage("You do not hold at least 5 FrankenFrens so a fee of 0.1 SEI will be charged for every successful mint!");
+                logMessage(`${senderAddress},${getFormattedTimestamp()}:You do not hold at least 5 FrankenFrens so a fee of 0.1 SEI will be charged for every successful mint!`);
             }
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
@@ -47,7 +46,7 @@ async function processConfig(config) {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
             }
         } else if (process.env.MODE === "BUY"){
-            logMessage("Sneiper in BUY mode:" 
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneiper in BUY mode:` 
              + "\nwith contract address: " + process.env.CONTRACT_ADDRESS 
              + "\nwith token id: " + process.env.TOKEN_ID 
              + "\nwith buy limit: " + process.env.BUY_LIMIT 
@@ -55,7 +54,7 @@ async function processConfig(config) {
              + "\nwith gas limit: " + process.env.GAS_LIMIT 
              + "\nwith polling frequency: " + process.env.POLLING_FREQUENCY
             );
-            logMessage("\nSneiper watching marketplace listings...");
+            logMessage(`\n${senderAddress},${getFormattedTimestamp()}:Sneiper watching marketplace listings...`);
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
                 const intervalId = setInterval(async () => await buySneiper(senderAddress, signingCosmWasmClient), pollingFrequency);
@@ -72,9 +71,19 @@ async function processConfig(config) {
 }
 
 export async function main() {
+    reloadEnv();
+    let walletConfigs = process.env.RECOVERY_PHRASE ? process.env.RECOVERY_PHRASE.split(',') : [];
     if(process.env.MODE === 'MINT'){
         await Promise.allSettled(walletConfigs.map(config => processConfig(config.trim())));
     }else {
         await walletConfigs.map(config => processConfig(config.trim()))
+    }
+}
+
+const reloadEnv = () => {
+    const envConfig = dotenv.parse(fs.readFileSync('.env'))
+
+    for (const key in envConfig) {
+        process.env[key] = envConfig[key]
     }
 }

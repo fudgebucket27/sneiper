@@ -116,10 +116,11 @@ export function getFormattedTimestamp() {
 }
 
 export const logBuffer = [];
+
 export function logMessage(message) {
   logBuffer.push(message);
 }
 
-
-
-
+export function clearLogs(){
+    logBuffer.length = 0;
+}

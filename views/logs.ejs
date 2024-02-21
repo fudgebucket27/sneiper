@@ -7,16 +7,29 @@
     <div id="logOutput"></div>
     <script>
         async function fetchLogs() {
-            const cacheBuster = new Date().getTime();
-            const response = await fetch(`/logs?_=${cacheBuster}`);
-            const logs = await response.json();
-            const logDiv = document.getElementById('logOutput');
-            logDiv.innerHTML = ''; // Clear existing log entries
-            logs.forEach(log => {
-                const logEntry = document.createElement('div');
-                logEntry.textContent = log;
-                logDiv.appendChild(logEntry);
-            });
+            try {
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`/logs?_=${cacheBuster}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const logs = await response.json();
+                if (!Array.isArray(logs)) {
+                    throw new Error('Expected logs to be an array');
+                }
+                const logDiv = document.getElementById('logOutput');
+                logDiv.innerHTML = ''; // Clear existing log entries
+                logs.forEach(log => {
+                    const logEntry = document.createElement('div');
+                    logEntry.textContent = log;
+                    logDiv.appendChild(logEntry);
+                });
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+                // Optionally, display the error on the page
+                const logDiv = document.getElementById('logOutput');
+                logDiv.innerHTML = `<div>Error fetching logs: ${error.message}</div>`;
+            }
         }
         setInterval(fetchLogs, 1000); // Fetch logs every second
     </script>

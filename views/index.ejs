@@ -12,6 +12,16 @@
     <form action="/start" method="POST">
       <div class="form-group">
         <div class="form-group row">
+          <label for="mode" class="col-sm-2 col-form-label">Mode:</label>
+          <div class="col-sm-10">
+            <select class="form-control" name="mode" id="mode">
+              <option value="MINT">MINT</option>
+              <option value="BUY">BUY</option>
+            </select>
+          </div>
+        </div> 
+        <h6>General Options</h6>      
+        <div class="form-group row">
           <label for="recoveryPhrase" class="col-sm-2 col-form-label">Recovery Phrases/Private Key(seperate with commas to use multiple in MINT mode)</label>
           <div class="col-sm-10">
             <textarea class="form-control" id="recoveryPhrase" name="recoveryPhrase"><%= currentConfig.RECOVERY_PHRASE || '' %></textarea>
@@ -29,6 +39,13 @@
             <input type="text" class="form-control" id="gasLimit" name="gasLimit" value="<%= currentConfig.GAS_LIMIT || '' %>">
           </div>
         </div>
+        <div class="form-group row">
+          <label for="pollingFrequency" class="col-sm-2 col-form-label">How often to poll in seconds</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="pollingFrequency" name="pollingFrequency" value="<%= currentConfig.POLLING_FREQUENCY || '' %>">
+          </div>
+        </div>
+        <h6>MINT Mode Options</h6>
         <div class="form-group row">
           <label for="mintUrl" class="col-sm-2 col-form-label">Mint URL(needs to be a Lighthouse mint site)</label>
           <div class="col-sm-10">
@@ -53,6 +70,7 @@
             <input type="text" class="form-control" id="mintLimitTotal" name="mintLimitTotal" value="<%= currentConfig.MINT_LIMIT_TOTAL || '' %>">
           </div>
         </div>
+        <h6>BUY Mode Options</h6>
         <div class="form-group row">
           <label for="contractAddress" class="col-sm-2 col-form-label">Contract Address</label>
           <div class="col-sm-10">
@@ -77,19 +95,6 @@
             <input type="text" class="form-control" id="buyLimit" name="buyLimit" value="<%= currentConfig.BUY_LIMIT || '' %>">
           </div>
         </div>
-        <div class="form-group row">
-          <label for="pollingFrequency" class="col-sm-2 col-form-label">How often to poll in seconds</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="pollingFrequency" name="pollingFrequency" value="<%= currentConfig.POLLING_FREQUENCY || '' %>">
-          </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Mode:</label>
-        <select class="form-control" name="mode">
-          <option value="MINT">MINT</option>
-          <option value="BUY">BUY</option>
-        </select>
       </div>
       <button type="submit" class="btn btn-primary">Start</button>
     </form>

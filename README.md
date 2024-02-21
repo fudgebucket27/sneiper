@@ -12,7 +12,7 @@ MINT mode will incur a fee, if you do not hold at least 5 NFTs from my FrankenFr
 You can purchase a FrankenFren from here: https://pallet.exchange/collection/frankenfrens
 
 ## Buy mode fees
-BUY mode is completely FREE to access and use for holders and non holders.
+BUY mode is completely FREE to access and use for holders and non holders of FrankenFrens.
 
 # Installation
 1. Install node js, npm and git

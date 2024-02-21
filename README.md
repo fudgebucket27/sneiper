@@ -30,7 +30,7 @@ BUY mode is completely FREE to access and use for holders and non holders of Fra
    ```
 5. In the sneiper folder, create a ".env" file with the following settings. [An example file is include here.](https://github.com/fudgebucket27/sneiper/blob/main/.env.example). 
    ```text
-   RECOVERY_PHRASE=       your recovery phrase or private key, you can use multiple in MINT mode just seperate with commas
+   RECOVERY_PHRASE=       your recovery phrase or private key, you can use multiple phrases or keys in MINT mode just seperate with commas
    RPC_URL=               the SEI rpc url
    MODE=                  set to BUY to snipe on pallet. set to MINT to snipe lighthouse mints.
    MINT_URL=              if using MINT mode, the url of the lighthouse mint site, eg https://www.seitarded.xyz 

@@ -50,7 +50,7 @@ app.set('view engine', 'ejs');
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(join(__dirname, 'public')));
+app.use(express.static('public'));
 
 // Routes
 app.get('/', (req, res) => {
@@ -89,7 +89,7 @@ app.post('/start', (req, res) => {
     main();
   }
 
-  res.redirect('/logs');
+  res.redirect('/logs.html');
 });
 
 app.get('/logs', (req, res) => {

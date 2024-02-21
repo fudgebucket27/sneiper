@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sneiper Logs</title>
+</head>
+<body>
+    <div id="logOutput"></div>
+    <script>
+        async function fetchLogs() {
+            const cacheBuster = new Date().getTime();
+            const response = await fetch(`/logs?_=${cacheBuster}`);
+            const logs = await response.json();
+            const logDiv = document.getElementById('logOutput');
+            logDiv.innerHTML = ''; // Clear existing log entries
+            logs.forEach(log => {
+                const logEntry = document.createElement('div');
+                logEntry.textContent = log;
+                logDiv.appendChild(logEntry);
+            });
+        }
+        setInterval(fetchLogs, 1000); // Fetch logs every second
+    </script>
+</body>
+</html>

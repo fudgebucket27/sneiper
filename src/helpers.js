@@ -27,8 +27,7 @@ export async function getHoldings(address, signingCosmWasmClient) {
                 owner: address
             }
         });
-
-        console.log("You hold " + tokensHeld.tokens.length + " FrankenFrens.");
+        logMessage("You hold " + tokensHeld.tokens.length + " FrankenFrens.");
         return tokensHeld.tokens.length;
     } catch (error) {
         console.error("Error checking if FrankenFrens holder:", error);
@@ -106,7 +105,7 @@ function findMintDetails(jsContent){
             return null;
         }
     } else {
-        console.log("Mint details not found!");
+        logMessage("Mint details not found!");
         return null;
     }
 };
@@ -114,6 +113,11 @@ function findMintDetails(jsContent){
 export function getFormattedTimestamp() {
     const now = new Date();
     return now.toISOString();
+}
+
+export const logBuffer = [];
+export function logMessage(message) {
+  logBuffer.push(message);
 }
 
 

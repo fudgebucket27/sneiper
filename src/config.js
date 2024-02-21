@@ -24,3 +24,11 @@ export function updateProcessingBuyQueueStatus(value) {
 export function addMintedTokenSuccess(token) {
     mintedTokens.push(token);
 }
+
+export function removeWallet(senderAddress)
+{
+    if (mintingIntervalIds[senderAddress]) {
+        clearInterval(mintingIntervalIds[senderAddress]);
+        delete mintingIntervalIds[senderAddress];
+    }
+}

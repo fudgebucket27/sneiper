@@ -7,7 +7,7 @@ import { dirname } from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import {main} from './index.js';
-
+import { logBuffer } from './helpers.js';
 
 
 const app = express();
@@ -88,7 +88,11 @@ app.post('/start', (req, res) => {
     main();
   }
 
-  res.send('Sneiper started in ' + mode + ' mode'); // Feedback to the user
+  res.redirect('/logs');
+});
+
+app.get('/logs', (req, res) => {
+  res.json(logBuffer);
 });
 
 const PORT = process.env.PORT || 3000;

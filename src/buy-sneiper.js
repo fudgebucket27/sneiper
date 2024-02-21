@@ -1,5 +1,6 @@
 import { clearAllIntervals, isValidListing, getFormattedTimestamp} from './helpers.js';
 import { boughtTokenIds, isProcessingBuyQueue, executionQueue, updateProcessingBuyQueueStatus, targetTokenIds } from './config.js';
+import { logMessage } from './helpers.js';
 
 export async function buySneiper(senderAddress, signingCosmWasmClient) {
     try {
@@ -17,7 +18,7 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
         }
         const palletListingResponseData = await palletListingResponse.json();
         if (palletListingResponseData.count > 0 && !isProcessingBuyQueue) {
-          console.log(`${getFormattedTimestamp()}:Listings valid! Sneiping...`)
+          logMessage(`${getFormattedTimestamp()}:Listings valid! Sneiping...`)
           executionQueue.push({ senderAddress, palletListingResponseData, signingCosmWasmClient});
           processQueue();
         }
@@ -42,14 +43,14 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
           const palletListingResponseData = await palletListingResponse.json();
     
           if (isValidListing(palletListingResponseData) && !isProcessingBuyQueue) {
-            console.log(`${getFormattedTimestamp()}:Listing valid for token id: ${tokenId}! Sneiping...`)
+            logMessage(`${getFormattedTimestamp()}:Listing valid for token id: ${tokenId}! Sneiping...`)
             executionQueue.push({ senderAddress, palletListingResponseData, signingCosmWasmClient});
             processQueue();
           }
         }
       }
     } catch (error){
-        console.log(`${getFormattedTimestamp()}:Sneipe unsuccessful! " + ${error.message}`);
+        logMessage(`${getFormattedTimestamp()}:Sneipe unsuccessful! " + ${error.message}`);
     }
 }
 
@@ -72,7 +73,7 @@ export async function processQueue() {
         await executeContract(senderAddress, palletListingResponseData, signingCosmWasmClient);
       }
     } catch (error) {
-        console.log(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
+        logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
     } finally {
        updateProcessingBuyQueueStatus(false);
        processQueue();
@@ -106,19 +107,19 @@ export async function processQueue() {
         const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", msg, "auto", "sneiper", totalFunds );
         if(result.transactionHash){
           boughtTokenIds.add(palletListingResponseData.tokens[0].id_int);
-          console.log(getFormattedTimestamp() + ":Sneipe successful for token id:" + palletListingResponseData.tokens[0].id_int + ", Tx hash: " + result.transactionHash);
+          logMessage(getFormattedTimestamp() + ":Sneipe successful for token id:" + palletListingResponseData.tokens[0].id_int + ", Tx hash: " + result.transactionHash);
       
           if (boughtTokenIds.size === targetTokenIds.size || boughtTokenIds.size ===  process.env.BUY_LIMIT ) {
-              console.log(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
+              logMessage(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
               clearAllIntervals();
-              process.exit(0);
+              //process.exit(0);
           }
         }
         else {
-          console.log(getFormattedTimestamp() + ":Sneipe unsuccessful!")
+          logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful!")
         }
       } catch (error) {
-        console.log(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
+        logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
       }
   }
   
@@ -161,15 +162,15 @@ export async function processQueue() {
         const result = await signingCosmWasmClient.execute(senderAddress, "sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9", batchBids, "auto", "sneiper", totalFunds);
   
         if (result.transactionHash) {
-            console.log(getFormattedTimestamp() + ":Sneipe successful! Tx hash: " + result.transactionHash);
-            console.log(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
+            logMessage(getFormattedTimestamp() + ":Sneipe successful! Tx hash: " + result.transactionHash);
+            logMessage(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
             clearAllIntervals();
-            process.exit(0);
+            //process.exit(0);
         } else {
-            console.log(getFormattedTimestamp() + ":Sneipe unsuccessful!");
+            logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful!");
         }
     } catch (error) {
-        console.log(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
+        logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
     }
   }
   
@@ -202,16 +203,17 @@ export async function processQueue() {
         if (result.transactionHash) {
             boughtTokenIds.add(token.id_int);
             const buyLimit = parseInt(process.env.BUY_LIMIT, 10); 
-            console.log(getFormattedTimestamp() + ":Sneipe successful for token id:" + token.id_int + ", Tx hash: " + result.transactionHash);
+            logMessage(getFormattedTimestamp() + ":Sneipe successful for token id:" + token.id_int + ", Tx hash: " + result.transactionHash);
             if (boughtTokenIds.size ===  buyLimit) {
-                console.log(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
-                process.exit(0);
+                logMessage(getFormattedTimestamp() + ":All tokens have been successfully bought. Exiting...");
+                clearAllIntervals();
+                //process.exit(0);
             }
         } else {
-            console.log(getFormattedTimestamp() + `:Sneipe unsuccessful for token id: ${token.id}`);
+            logMessage(getFormattedTimestamp() + `:Sneipe unsuccessful for token id: ${token.id}`);
         }
       } catch (error) {
-        console.log(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
+        logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
       }
     }
   }

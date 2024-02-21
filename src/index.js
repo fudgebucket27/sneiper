@@ -16,7 +16,10 @@ export function removeWallet(senderAddress)
         clearInterval(mintingIntervalIds[senderAddress]);
         delete mintingIntervalIds[senderAddress]; // Remove the interval ID from tracking
     }
-    walletConfigs = walletConfigs.filter(wallet => wallet !== senderAddress); // Remove the wallet
+
+    if (Object.keys(mintingIntervalIds).length === 0) {
+        console.log("No more valid wallets to use. Exiting...");
+    }
 }
 
 async function processConfig(config) {
@@ -80,12 +83,10 @@ async function processConfig(config) {
     }
 }
 
-async function main() {
+export async function main() {
     if(process.env.MODE === 'MINT'){
         await Promise.allSettled(walletConfigs.map(config => processConfig(config.trim())));
     }else {
         await walletConfigs.map(config => processConfig(config.trim()))
     }
 }
-
-main();

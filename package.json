@@ -2,9 +2,9 @@
   "name": "sneiper",
   "version": "1.0.0",
   "description": "Snipe NFTS on SEI",
-  "main": "src/index.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/app.js"
   },
   "type": "module",
   "repository": {
@@ -28,9 +28,13 @@
     "@sei-js/proto": "^3.1.0",
     "@sei-js/react": "^3.2.0",
     "axios": "^1.6.7",
+    "body-parser": "^1.20.2",
     "cheerio": "^1.0.0-rc.12",
     "dotenv": "^16.4.1",
-    "merkletreejs": "^0.3.11"
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "merkletreejs": "^0.3.11",
+    "open": "^10.0.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.6",

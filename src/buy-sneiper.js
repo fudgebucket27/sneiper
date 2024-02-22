@@ -1,5 +1,5 @@
 import {isValidListing, getFormattedTimestamp, updateShouldExitBuyMode, stopBuyingProcess} from './helpers.js';
-import { addBoughtTokenId, getBoughtTokenCount, isProcessingBuyQueue, executionQueue, updateProcessingBuyQueueStatus, targetTokenIds, getTargetTokenIds} from './config.js';
+import { boughtTokenIds, addBoughtTokenId, getBoughtTokenCount, isProcessingBuyQueue, executionQueue, updateProcessingBuyQueueStatus, targetTokenIds, getTargetTokenIds} from './config.js';
 import { logMessage } from './helpers.js';
 
 export async function buySneiper(senderAddress, signingCosmWasmClient) {

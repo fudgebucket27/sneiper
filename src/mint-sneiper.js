@@ -96,10 +96,12 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
               updateProcessingMintQueueStatus(false, senderAddress);
             }
             else{
+              updateProcessingMintQueueStatus(false, senderAddress);
                 logMessage(`${senderAddress},${getFormattedTimestamp()}:Collection config not found...`);
                 removeWallet(senderAddress);
               }
         }else{
+            updateProcessingMintQueueStatus(false, senderAddress);
             logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint details not found...is this a lighthouse mint site?`);
             removeWallet(senderAddress);
           }

@@ -125,6 +125,13 @@ export async function processQueue() {
         }
       } catch (error) {
         logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
+        if(error.message.toUpperCase().includes("IS SMALLER THAN"))
+        {
+          logMessage(getFormattedTimestamp() + ":You do not have enough funds. Exiting!");
+          stopBuyingProcess();
+          updateShouldExitBuyMode(true);
+          return;
+        }
       }
   }
   
@@ -179,6 +186,13 @@ export async function processQueue() {
         }
     } catch (error) {
         logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
+        if(error.message.toUpperCase().includes("IS SMALLER THAN"))
+        {
+          logMessage(getFormattedTimestamp() + ":You do not have enough funds. Exiting!");
+          stopBuyingProcess();
+          updateShouldExitBuyMode(true);
+          return;
+        }
     }
   }
   
@@ -225,6 +239,13 @@ export async function processQueue() {
         }
       } catch (error) {
         logMessage(getFormattedTimestamp() + ":Sneipe unsuccessful! " + error.message);
+        if(error.message.toUpperCase().includes("IS SMALLER THAN"))
+        {
+          logMessage(getFormattedTimestamp() + ":You do not have enough funds. Exiting!");
+          stopBuyingProcess();
+          updateShouldExitBuyMode(true);
+          return;
+        }
       }
     }
   }

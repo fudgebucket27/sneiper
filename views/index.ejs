@@ -72,57 +72,63 @@
             </select>
           </div>
         </div> 
-        <h6>MINT Mode Options</h6>
-        <div class="form-group row">
-          <label for="mintUrl" class="col-sm-2 col-form-label">Mint URL(needs to be a Lighthouse mint site)</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="mintUrl" name="mintUrl" value="<%= currentConfig.MINT_URL || '' %>">
+        <div id="mintOptions" style="display: none;">
+          <h6>MINT Mode Options</h6>
+          <div class="form-group row">
+            <label for="mintUrl" class="col-sm-2 col-form-label">Mint URL(needs to be a Lighthouse mint site)</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="mintUrl" name="mintUrl" value="<%= currentConfig.MINT_URL || '' %>">
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="mintLimitPerPhase" class="col-sm-2 col-form-label">Mint Limit Per Phase</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="mintLimitPerPhase" name="mintLimitPerPhase" value="<%= currentConfig.MINT_LIMIT_PER_PHASE|| '' %>">
+          <div class="form-group row">
+            <label for="mintLimitPerPhase" class="col-sm-2 col-form-label">Mint Limit Per Phase</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="mintLimitPerPhase" name="mintLimitPerPhase" value="<%= currentConfig.MINT_LIMIT_PER_PHASE|| '' %>">
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="mintLimitPerWallet" class="col-sm-2 col-form-label">Mint Limit Per Wallet</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="mintLimitPerWallet" name="mintLimitPerWallet" value="<%= currentConfig.MINT_LIMIT_PER_WALLET || '' %>">
+          <div class="form-group row">
+            <label for="mintLimitPerWallet" class="col-sm-2 col-form-label">Mint Limit Per Wallet</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="mintLimitPerWallet" name="mintLimitPerWallet" value="<%= currentConfig.MINT_LIMIT_PER_WALLET || '' %>">
+            </div>
           </div>
+          <div class="form-group row">
+            <label for="mintLimitTotal" class="col-sm-2 col-form-label">Mint Limit Total</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="mintLimitTotal" name="mintLimitTotal" value="<%= currentConfig.MINT_LIMIT_TOTAL || '' %>">
+            </div>
+          </div> 
         </div>
-        <div class="form-group row">
-          <label for="mintLimitTotal" class="col-sm-2 col-form-label">Mint Limit Total</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="mintLimitTotal" name="mintLimitTotal" value="<%= currentConfig.MINT_LIMIT_TOTAL || '' %>">
+
+        <div id="buyOptions" style="display: none;">
+          <h6>BUY Mode Options</h6>
+          <div class="form-group row">
+            <label for="contractAddress" class="col-sm-2 col-form-label">Contract Address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="contractAddress" name="contractAddress" value="<%= currentConfig.CONTRACT_ADDRESS || '' %>">
+            </div>
           </div>
-        </div>
-        <h6>BUY Mode Options</h6>
-        <div class="form-group row">
-          <label for="contractAddress" class="col-sm-2 col-form-label">Contract Address</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="contractAddress" name="contractAddress" value="<%= currentConfig.CONTRACT_ADDRESS || '' %>">
+          <div class="form-group row">
+            <label for="tokenId" class="col-sm-2 col-form-label">Token ID(seperate with commas for multiple or use AUTO or SWEEP)</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="tokenId" name="tokenId" value="<%= currentConfig.TOKEN_ID || '' %>">
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="tokenId" class="col-sm-2 col-form-label">Token ID(seperate with commas for multiple or use AUTO or SWEEP)</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="tokenId" name="tokenId" value="<%= currentConfig.TOKEN_ID || '' %>">
+          <div class="form-group row">
+            <label for="priceLimit" class="col-sm-2 col-form-label">Price Limit to buy NFT at in SEI</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="priceLimit" name="priceLimit" value="<%= currentConfig.PRICE_LIMIT || '' %>">
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="priceLimit" class="col-sm-2 col-form-label">Price Limit to buy NFT at in SEI</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="priceLimit" name="priceLimit" value="<%= currentConfig.PRICE_LIMIT || '' %>">
-          </div>
-        </div>
-        <div class="form-group row">
-          <label for="buyLimit" class="col-sm-2 col-form-label">How many NFTs to buy in total</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="buyLimit" name="buyLimit" value="<%= currentConfig.BUY_LIMIT || '' %>">
+          <div class="form-group row">
+            <label for="buyLimit" class="col-sm-2 col-form-label">How many NFTs to buy in total</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="buyLimit" name="buyLimit" value="<%= currentConfig.BUY_LIMIT || '' %>">
+            </div>
           </div>
         </div>
       </div>
+
       <button type="submit" class="btn btn-primary">Start Sneiper</button>
       <button type="button" class="btn btn-danger" id="exitButton">Exit Sneiper</button>
     </form>
@@ -133,6 +139,23 @@
     document.addEventListener('DOMContentLoaded', function() {
       const form = document.querySelector('form');
       const inputs = form.querySelectorAll('input');
+      const modeSelect = document.getElementById('mode');
+      const mintOptions = document.getElementById('mintOptions');
+      const buyOptions = document.getElementById('buyOptions');
+
+       // Function to toggle visibility based on the mode
+      function toggleModeOptions() {
+        const mode = modeSelect.value;
+        if (mode === 'MINT') {
+          mintOptions.style.display = '';
+          buyOptions.style.display = 'none';
+        } else if (mode === 'BUY') {
+          mintOptions.style.display = 'none';
+          buyOptions.style.display = '';
+        }
+      }
+      toggleModeOptions();
+      modeSelect.addEventListener('change', toggleModeOptions);
 
       const exitButton = document.getElementById('exitButton');
       exitButton.addEventListener('click', function() {

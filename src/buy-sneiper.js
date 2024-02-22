@@ -14,7 +14,7 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
           } catch (parseError) {
               errorMsg = palletListingResponse.statusText;
           }
-          throw new Error(`${getFormattedTimestamp()}:Failed to get pallet listings! ${errorMsg},Retrying...The connection will be restablished!`);
+          throw new Error(`${getFormattedTimestamp()}:Failed to get pallet listings! ${errorMsg},Retrying...The connection will be re-established!`);
         }
         const palletListingResponseData = await palletListingResponse.json();
         if (palletListingResponseData.count > 0 && !isProcessingBuyQueue) {
@@ -39,7 +39,7 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
             } catch (parseError) {
                 errorMsg = palletListingResponse.statusText;
             }
-            throw new Error(`${getFormattedTimestamp()}:Failed to get pallet listing! ${errorMsg},Retrying...The connection will be restablished!`);
+            throw new Error(`${getFormattedTimestamp()}:Failed to get pallet listing! ${errorMsg},Retrying...The connection will be re-established!`);
           }
           const palletListingResponseData = await palletListingResponse.json();
     

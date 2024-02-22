@@ -106,6 +106,9 @@ app.get('/logs', (req, res) => {
 app.post('/exit', (req, res) => {
   console.log('Exiting the app...');
 
+  // Send response immediately
+  res.send('Server is shutting down...');
+
   // Exit after a short delay
   setTimeout(() => {
     process.exit();

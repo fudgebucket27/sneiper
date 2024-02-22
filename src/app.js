@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import {main} from './index.js';
 import { logBuffer, clearLogs, stopBuyingProcess} from './helpers.js';
 import { clearMintingIntervalIds } from './config.js';
+import http from 'http';
 
 
 const app = express();
@@ -52,7 +53,35 @@ app.set('view engine', 'ejs');
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use((req, res, next) => {
+  res.setHeader('Connection', 'keep-alive');
+  next();
+});
 
+const activeConnections = new Set();
+
+const server = http.createServer(app);
+
+server.on('connection', (socket) => {
+  // Add the new connection to the set
+  activeConnections.add(socket);
+  console.log(`Active connections: ${activeConnections.size}`);
+
+  socket.on('close', () => {
+    // Remove the connection from the set when it's closed
+    activeConnections.delete(socket);
+    console.log(`Active connections: ${activeConnections.size}`);
+
+    if (activeConnections.size === 0) {
+      // No more active connections, time to shut down the server
+      console.log('No active connections. Server is shutting down.');
+      server.close(() => {
+        console.log('Server has been shut down.');
+        // Here you can also clean up any resources like database connections if needed
+      });
+    }
+  });
+});
 
 
 // Routes
@@ -65,6 +94,10 @@ app.get('/', (req, res) => {
   clearMintingIntervalIds();
   const currentConfig = getCurrentConfig();
   res.render('index', { currentConfig });
+});
+
+app.get('/keep-alive', (req, res) => {
+  res.status(200).send('OK');
 });
 
 app.post('/start', (req, res) => {
@@ -106,7 +139,9 @@ app.get('/logs', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.setTimeout(604800000);
+server.listen(PORT, () => {
   console.log(`Sneiper is running on --> http://localhost:${PORT}`);
   open(`http://localhost:${PORT}`);
 });
+

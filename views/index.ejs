@@ -172,6 +172,18 @@
       // Initially blur the textarea
       blurTextarea();
     });
+
+     // Function to send a keep-alive request to the server
+     function sendKeepAlive() {
+        fetch('/keep-alive', { method: 'GET' })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Keep-alive request failed.');
+                }
+            })
+            .catch(error => console.error('Error sending keep-alive request:', error));
+    }
+    setInterval(sendKeepAlive, 500);
   </script>
   
   

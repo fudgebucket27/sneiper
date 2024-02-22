@@ -90,7 +90,9 @@ export async function main() {
     if(process.env.MODE === 'MINT'){
         await Promise.allSettled(walletConfigs.map(config => processConfig(config.trim())));
     }else {
-        await walletConfigs.map(config => processConfig(config.trim()))
+        if(walletConfigs.length > 0) {
+            await processConfig(walletConfigs[0].trim());
+        }
     }
 }
 

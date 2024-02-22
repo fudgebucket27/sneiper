@@ -1,4 +1,4 @@
-import { mintingIntervalIds} from './config.js';
+import { mintingIntervalIds,clearBoughtTokenIds, clearMintedTokens} from './config.js';
 import { getHoldings, logMessage, getFormattedTimestamp, getShouldExitBuyMode, updateShouldExitBuyMode, updateBuyTimeoutId} from './helpers.js';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -30,6 +30,7 @@ async function processConfig(config) {
         const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
 
         if(process.env.MODE === 'MINT'){
+            clearMintedTokens();
             logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneiper in MINT mode`);
             logMessage(`${senderAddress},${getFormattedTimestamp()}:Checking if you hold any FrankenFrens...`);
             const isHolder = await getHoldings(senderAddress, signingCosmWasmClient);
@@ -48,6 +49,7 @@ async function processConfig(config) {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
             }
         } else if (process.env.MODE === "BUY"){
+            clearBoughtTokenIds();
             logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneiper in BUY mode:` 
              + "\nwith contract address: " + process.env.CONTRACT_ADDRESS 
              + "\nwith token id: " + process.env.TOKEN_ID 
@@ -60,7 +62,7 @@ async function processConfig(config) {
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
                 const buyFunction = async () => {
-                    if (!getShouldExitBuyMode()) { // `getShouldExitBuyMode` is a hypothetical function that fetches the current value
+                    if (!getShouldExitBuyMode()) {
                         await buySneiper(senderAddress, signingCosmWasmClient);
                         buySneiperTimeoutId = setTimeout(buyFunction, pollingFrequency);
                         updateBuyTimeoutId(buySneiperTimeoutId);

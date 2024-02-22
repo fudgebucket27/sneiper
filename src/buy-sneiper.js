@@ -1,5 +1,5 @@
 import {isValidListing, getFormattedTimestamp, updateShouldExitBuyMode, stopBuyingProcess} from './helpers.js';
-import { boughtTokenIds, isProcessingBuyQueue, executionQueue, updateProcessingBuyQueueStatus, targetTokenIds} from './config.js';
+import { boughtTokenIds, isProcessingBuyQueue, executionQueue, updateProcessingBuyQueueStatus, targetTokenIds, getTargetTokenIds} from './config.js';
 import { logMessage } from './helpers.js';
 
 export async function buySneiper(senderAddress, signingCosmWasmClient) {
@@ -23,6 +23,7 @@ export async function buySneiper(senderAddress, signingCosmWasmClient) {
           processQueue();
         }
       } else {
+        getTargetTokenIds();
         const tokenIds = process.env.TOKEN_ID.split(',').map(id => parseInt(id.trim(), 10));
 
         for (const tokenId of tokenIds) {

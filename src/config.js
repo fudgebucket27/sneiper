@@ -6,13 +6,22 @@ export let isProcessingMintQueue = {};
 export let targetTokenIds;
 export let mintedTokens = [];
 export const boughtTokenIds = new Set(); 
-if (process.env.TOKEN_ID && process.env.TOKEN_ID !== "SWEEP" && process.env.TOKEN_ID !== "AUTO") {
-    targetTokenIds = new Set(process.env.TOKEN_ID.split(',').map(id => parseInt(id.trim(), 10)));
+
+export function getTargetTokenIds(){
+    if (process.env.TOKEN_ID && process.env.TOKEN_ID !== "SWEEP" && process.env.TOKEN_ID !== "AUTO") {
+        targetTokenIds = new Set(process.env.TOKEN_ID.split(',').map(id => parseInt(id.trim(), 10)));
+    }
 }
 
+export function clearMintedTokens(){
+    mintedTokens.length = 0;
+}
 
-export function clearBuyingIntervalIds()
-{
+export function clearBoughtTokenIds(){
+    boughtTokenIds.clear();
+}
+
+export function clearBuyingIntervalIds(){
     while (buyingIntervalIds.length > 0) {
         const intervalId = buyingIntervalIds.pop();
         clearInterval(intervalId);
@@ -32,8 +41,7 @@ export function addMintedTokenSuccess(token) {
     mintedTokens.push(token);
 }
 
-export function removeWallet(senderAddress)
-{
+export function removeWallet(senderAddress){
     if (mintingIntervalIds[senderAddress]) {
         clearInterval(mintingIntervalIds[senderAddress]);
         delete mintingIntervalIds[senderAddress];

@@ -13,6 +13,14 @@ export function getTargetTokenIds(){
     }
 }
 
+export function addBoughtTokenId(tokenId) {
+    boughtTokenIds.add(tokenId);
+}
+
+export function getBoughtTokenCount() {
+    return boughtTokenIds.size;
+}
+
 export function clearMintedTokens(){
     mintedTokens.length = 0;
 }

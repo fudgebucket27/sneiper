@@ -67,8 +67,8 @@
           <label for="mode" class="col-sm-2 col-form-label">Mode:</label>
           <div class="col-sm-10">
             <select class="form-control" name="mode" id="mode">
-              <option value="MINT">MINT</option>
-              <option value="BUY">BUY</option>
+              <option value="MINT" <%= currentConfig.MODE === 'MINT' ? 'selected' : '' %>>MINT</option>
+              <option value="BUY" <%= currentConfig.MODE === 'BUY' ? 'selected' : '' %>>BUY</option>
             </select>
           </div>
         </div> 

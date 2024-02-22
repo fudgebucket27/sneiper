@@ -10,11 +10,19 @@ const walletMintCounts = {};
 
 
 export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmClient) {
+
     try {
       if(!isProcessingMintQueue[senderAddress]){
+        if(mintedTokens.length >= process.env.MINT_LIMIT_TOTAL)
+        {
+          logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint limit total reached! Exiting`)
+          removeWallet(senderAddress);
+          return;
+        }
         if(walletMintCounts[senderAddress] >= process.env.MINT_LIMIT_PER_WALLET) {
           logMessage(`${senderAddress},${getFormattedTimestamp()}:Skipping mint for ${senderAddress} as mint limit per wallet/total has been reached.`);
           removeWallet(senderAddress);
+          return;
         }
         const current_time = Math.floor(Date.now() / 1000);
         updateProcessingMintQueueStatus(true, senderAddress);
@@ -99,11 +107,13 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
               updateProcessingMintQueueStatus(false, senderAddress);
                 logMessage(`${senderAddress},${getFormattedTimestamp()}:Collection config not found...`);
                 removeWallet(senderAddress);
+                return;
               }
         }else{
             updateProcessingMintQueueStatus(false, senderAddress);
             logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint details not found...is this a lighthouse mint site?`);
             removeWallet(senderAddress);
+            return;
           }
       }
     } catch (error){
@@ -217,13 +227,16 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
 
         if(error.message.toUpperCase().includes("MAX TOKENS MINTED"))
         {
+          logMessage(`${senderAddress},${getFormattedTimestamp()}:Max tokens minted for wallet. Exiting...`);
           removeWallet(senderAddress);
+          return;
         }
 
         if(error.message.toUpperCase().includes("SOLD OUT"))
         {
           logMessage(`${senderAddress},${getFormattedTimestamp()}:Collection SOLD OUT. Exiting...`);
           removeWallet(senderAddress);
+          return;
         }
       } finally {
 
@@ -232,6 +245,7 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
       if (mintedTokens.length >=  mintLimitTotal) {
         logMessage(`${senderAddress},${getFormattedTimestamp()}:All tokens have been successfully bought. Exiting...`);
         removeWallet(senderAddress);
+        return;
       }
 }
 

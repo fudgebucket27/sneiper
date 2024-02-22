@@ -86,7 +86,7 @@ async function processConfig(config) {
 export async function main() {
     reloadEnv();
     updateShouldExitBuyMode(false);
-    let walletConfigs = process.env.RECOVERY_PHRASE ? process.env.RECOVERY_PHRASE.split(',') : [];
+    let walletConfigs = reloadWalletConfig();
     if(process.env.MODE === 'MINT'){
         await Promise.allSettled(walletConfigs.map(config => processConfig(config.trim())));
     }else {
@@ -102,6 +102,10 @@ const reloadEnv = () => {
     for (const key in envConfig) {
         process.env[key] = envConfig[key]
     }
+}
+
+const reloadWalletConfig = () =>{
+    return process.env.RECOVERY_PHRASE ? process.env.RECOVERY_PHRASE.split(',') : [];
 }
 
 

@@ -15,6 +15,22 @@
       background-color: #333;
       color: #fff;
     }
+
+    #recoveryPhrase {
+      border: 1px solid #ccc; /* Add border */
+      padding: 5px; /* Add padding */
+      font-family: Arial, sans-serif; /* Specify font */
+      font-size: 16px; /* Specify font size */
+      line-height: 1.5; /* Specify line height */
+      filter: blur(5px); /* Blur by default */
+    }
+
+    #recoveryPhrase:focus {
+      outline: none; /* Remove outline on focus */
+      border-color: #007bff; /* Change border color on focus */
+      filter: none; /* Remove blur on focus */
+    }
+
   </style>
 </head>
 <body>
@@ -130,8 +146,34 @@
       startButton.addEventListener('click', function() {
         form.submit(); // Explicitly submit the form on Start button click
       });
+  
+      const recoveryPhrase = document.getElementById('recoveryPhrase');
+  
+      // Function to blur the textarea
+      function blurTextarea() {
+        recoveryPhrase.style.filter = 'blur(10px)';
+      }
+  
+      // Function to unblur the textarea
+      function unblurTextarea() {
+        recoveryPhrase.style.filter = 'none';
+      }
+  
+      // Blur the textarea when mouse leaves it
+      recoveryPhrase.addEventListener('mouseleave', function() {
+        blurTextarea();
+      });
+  
+      // Unblur the textarea when mouse enters it
+      recoveryPhrase.addEventListener('mouseenter', function() {
+        unblurTextarea();
+      });
+  
+      // Initially blur the textarea
+      blurTextarea();
     });
   </script>
+  
   
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

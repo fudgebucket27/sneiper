@@ -7,7 +7,8 @@ import { dirname } from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import {main} from './index.js';
-import { logBuffer, clearLogs } from './helpers.js';
+import { logBuffer, clearLogs, stopBuyingProcess} from './helpers.js';
+import { clearMintingIntervalIds } from './config.js';
 
 
 const app = express();
@@ -52,8 +53,12 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+
+
 // Routes
 app.get('/', (req, res) => {
+  stopBuyingProcess();
+  clearMintingIntervalIds();
   const currentConfig = getCurrentConfig();
   res.render('index', { currentConfig });
 });

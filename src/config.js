@@ -47,3 +47,13 @@ export function removeWallet(senderAddress){
         delete mintingIntervalIds[senderAddress];
     }
 }
+
+export function clearMintingIntervalIds() {
+    for (const address in mintingIntervalIds) {
+        if (Object.hasOwnProperty.call(mintingIntervalIds, address)) {
+            clearInterval(mintingIntervalIds[address]);
+            delete mintingIntervalIds[address];
+        }
+    }
+    console.log('Minting intervals cleared. Length is now: ' + Object.keys(mintingIntervalIds).length);
+}

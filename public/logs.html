@@ -53,19 +53,6 @@
         window.addEventListener('popstate', function (e) { var state = e.state; if (state !== null) {
             window.location.href = '/';
         } });
-
-        function sendKeepAlive() {
-          // Use the current timestamp as a cache buster parameter
-          const cacheBuster = new Date().getTime();
-          fetch(`/keep-alive?_=${cacheBuster}`, { method: 'GET' })
-              .then(response => {
-                  if (!response.ok) {
-                      console.error('Keep-alive request failed.');
-                  }
-              })
-              .catch(error => console.error('Error sending keep-alive request:', error));
-      }
-      setInterval(sendKeepAlive, 500);
     </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>

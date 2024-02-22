@@ -123,7 +123,8 @@
           </div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary">Start</button>
+      <button type="submit" class="btn btn-primary">Start Sneiper</button>
+      <button type="button" class="btn btn-danger" id="exitButton">Exit Sneiper</button>
     </form>
   </div>
 
@@ -132,7 +133,13 @@
     document.addEventListener('DOMContentLoaded', function() {
       const form = document.querySelector('form');
       const inputs = form.querySelectorAll('input');
-  
+
+      const exitButton = document.getElementById('exitButton');
+      exitButton.addEventListener('click', function() {
+        // Navigate to exit.html
+        window.location.href = '/exit.html';
+      });
+
       // Prevent form submission on Enter key press in input fields
       inputs.forEach(input => {
         input.addEventListener('keypress', function(event) {
@@ -172,20 +179,6 @@
       // Initially blur the textarea
       blurTextarea();
     });
-
-     // Function to send a keep-alive request to the server
-     function sendKeepAlive() {
-          // Use the current timestamp as a cache buster parameter
-          const cacheBuster = new Date().getTime();
-          fetch(`/keep-alive?_=${cacheBuster}`, { method: 'GET' })
-              .then(response => {
-                  if (!response.ok) {
-                      console.error('Keep-alive request failed.');
-                  }
-              })
-              .catch(error => console.error('Error sending keep-alive request:', error));
-      }
-      setInterval(sendKeepAlive, 500);
   </script>
   
   

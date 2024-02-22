@@ -108,7 +108,6 @@ app.post('/exit', (req, res) => {
 
   // Exit after a short delay
   setTimeout(() => {
-    console.log('Exiting after redirect...');
     process.exit();
   }, 1000);
 });

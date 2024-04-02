@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" class="dark-mode">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sneiper</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Dark mode styles */
+    .dark-mode body {
+      background-color: #222;
+      color: #fff;
+    }
+    .dark-mode .form-control {
+      background-color: #333;
+      color: #fff;
+    }
+
+    #recoveryPhrase {
+      border: 1px solid #ccc; /* Add border */
+      padding: 5px; /* Add padding */
+      font-family: Arial, sans-serif; /* Specify font */
+      font-size: 16px; /* Specify font size */
+      line-height: 1.5; /* Specify line height */
+      filter: blur(5px); /* Blur by default */
+    }
+
+    #recoveryPhrase:focus {
+      outline: none; /* Remove outline on focus */
+      border-color: #007bff; /* Change border color on focus */
+      filter: none; /* Remove blur on focus */
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Sneiper Configuration</h2>
+    <form action="/start" method="POST">
+      <div class="form-group">
+        <h6>General Options</h6>      
+        <div class="form-group row">
+          <label for="recoveryPhrase" class="col-sm-2 col-form-label">Recovery Phrases/Private Key(seperate with commas to use multiple in MINT mode)</label>
+          <div class="col-sm-10">
+            <textarea class="form-control" id="recoveryPhrase" name="recoveryPhrase"><%= currentConfig.RECOVERY_PHRASE || '' %></textarea>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="rpcUrl" class="col-sm-2 col-form-label">SEI RPC URL</label>
+          <div class="col-sm-10">
+            <input class="form-control" id="rpcUrl" name="rpcUrl" value="<%= currentConfig.RPC_URL || '' %>">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="gasLimit" class="col-sm-2 col-form-label">Gas Limit in SEI</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="gasLimit" name="gasLimit" value="<%= currentConfig.GAS_LIMIT || '' %>">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="pollingFrequency" class="col-sm-2 col-form-label">How often to poll in seconds</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="pollingFrequency" name="pollingFrequency" value="<%= currentConfig.POLLING_FREQUENCY || '' %>">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="mode" class="col-sm-2 col-form-label">Mode:</label>
+          <div class="col-sm-10">
+            <select class="form-control" name="mode" id="mode">
+              <option value="MINT" <%= currentConfig.MODE === 'MINT' ? 'selected' : '' %>>MINT</option>
+              <option value="BUY" <%= currentConfig.MODE === 'BUY' ? 'selected' : '' %>>BUY</option>
+            </select>
+          </div>
+        </div> 
+        <div id="mintOptions" style="display: none;">
+          <h6>MINT Mode Options</h6>
+          <div class="form-group row">
+            <label for="mintUrl" class="col-sm-2 col-form-label">Mint URL(needs to be a Lighthouse mint site)</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="mintUrl" name="mintUrl" value="<%= currentConfig.MINT_URL || '' %>">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="mintLimitPerPhase" class="col-sm-2 col-form-label">Mint Limit Per Phase</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="mintLimitPerPhase" name="mintLimitPerPhase" value="<%= currentConfig.MINT_LIMIT_PER_PHASE|| '' %>">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="mintLimitPerWallet" class="col-sm-2 col-form-label">Mint Limit Per Wallet</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="mintLimitPerWallet" name="mintLimitPerWallet" value="<%= currentConfig.MINT_LIMIT_PER_WALLET || '' %>">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="mintLimitTotal" class="col-sm-2 col-form-label">Mint Limit Total</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="mintLimitTotal" name="mintLimitTotal" value="<%= currentConfig.MINT_LIMIT_TOTAL || '' %>">
+            </div>
+          </div> 
+        </div>
+
+        <div id="buyOptions" style="display: none;">
+          <h6>BUY Mode Options</h6>
+          <div class="form-group row">
+            <label for="contractAddress" class="col-sm-2 col-form-label">Contract Address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="contractAddress" name="contractAddress" value="<%= currentConfig.CONTRACT_ADDRESS || '' %>">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="tokenId" class="col-sm-2 col-form-label">Token ID(seperate with commas for multiple or use AUTO or SWEEP)</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="tokenId" name="tokenId" value="<%= currentConfig.TOKEN_ID || '' %>">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="priceLimit" class="col-sm-2 col-form-label">Price Limit to buy NFT at in SEI</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="priceLimit" name="priceLimit" value="<%= currentConfig.PRICE_LIMIT || '' %>">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="buyLimit" class="col-sm-2 col-form-label">How many NFTs to buy in total</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="buyLimit" name="buyLimit" value="<%= currentConfig.BUY_LIMIT || '' %>">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Start Sneiper</button>
+      <button type="button" class="btn btn-danger" id="exitButton">Exit Sneiper</button>
+    </form>
+  </div>
+
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.querySelector('form');
+      const inputs = form.querySelectorAll('input');
+      const modeSelect = document.getElementById('mode');
+      const mintOptions = document.getElementById('mintOptions');
+      const buyOptions = document.getElementById('buyOptions');
+
+       // Function to toggle visibility based on the mode
+      function toggleModeOptions() {
+        const mode = modeSelect.value;
+        if (mode === 'MINT') {
+          mintOptions.style.display = '';
+          buyOptions.style.display = 'none';
+        } else if (mode === 'BUY') {
+          mintOptions.style.display = 'none';
+          buyOptions.style.display = '';
+        }
+      }
+      toggleModeOptions();
+      modeSelect.addEventListener('change', toggleModeOptions);
+
+      const exitButton = document.getElementById('exitButton');
+      exitButton.addEventListener('click', function() {
+        // Navigate to exit.html
+        window.location.href = '/exit.html';
+      });
+
+      // Prevent form submission on Enter key press in input fields
+      inputs.forEach(input => {
+        input.addEventListener('keypress', function(event) {
+          if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent form submission
+          }
+        });
+      });
+  
+      const startButton = form.querySelector('button[type="submit"]');
+      startButton.addEventListener('click', function() {
+        form.submit(); // Explicitly submit the form on Start button click
+      });
+  
+      const recoveryPhrase = document.getElementById('recoveryPhrase');
+  
+      // Function to blur the textarea
+      function blurTextarea() {
+        recoveryPhrase.style.filter = 'blur(10px)';
+      }
+  
+      // Function to unblur the textarea
+      function unblurTextarea() {
+        recoveryPhrase.style.filter = 'none';
+      }
+  
+      // Blur the textarea when mouse leaves it
+      recoveryPhrase.addEventListener('mouseleave', function() {
+        blurTextarea();
+      });
+  
+      // Unblur the textarea when mouse enters it
+      recoveryPhrase.addEventListener('mouseenter', function() {
+        unblurTextarea();
+      });
+  
+      // Initially blur the textarea
+      blurTextarea();
+    });
+  </script>
+  
+  
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

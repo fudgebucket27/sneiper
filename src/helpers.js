@@ -1,4 +1,3 @@
-import { mintingIntervalIds, buyingIntervalIds } from './config.js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import {keccak_256} from '@noble/hashes/sha3';
@@ -15,8 +14,27 @@ export function isValidListing(palletListingResponseData) {
     }
 }
 
-export function clearAllIntervals() {
-    buyingIntervalIds.forEach((id) => clearInterval(id));
+export let shouldExitBuyMode = false;
+
+export function updateShouldExitBuyMode(value){
+    shouldExitBuyMode = value;
+    console.log("Should exit by mode is now:"+ shouldExitBuyMode);
+}
+
+export let buyTimeoutId = null;
+
+export function updateBuyTimeoutId(value){
+    buyTimeoutId = value;
+}
+
+export function getShouldExitBuyMode()
+{
+    return shouldExitBuyMode;
+}
+
+export function stopBuyingProcess() {
+    clearTimeout(buyTimeoutId);
+    console.log("Stopped the buying process.");
 }
 
 export async function getHoldings(address, signingCosmWasmClient) {
@@ -27,8 +45,7 @@ export async function getHoldings(address, signingCosmWasmClient) {
                 owner: address
             }
         });
-
-        console.log("You hold " + tokensHeld.tokens.length + " FrankenFrens.");
+        //logMessage("You hold " + tokensHeld.tokens.length + " FrankenFrens.");
         return tokensHeld.tokens.length;
     } catch (error) {
         console.error("Error checking if FrankenFrens holder:", error);
@@ -106,7 +123,7 @@ function findMintDetails(jsContent){
             return null;
         }
     } else {
-        console.log("Mint details not found!");
+        logMessage("Mint details not found!");
         return null;
     }
 };
@@ -116,6 +133,12 @@ export function getFormattedTimestamp() {
     return now.toISOString();
 }
 
+export const logBuffer = [];
 
+export function logMessage(message) {
+  logBuffer.push(message);
+}
 
-
+export function clearLogs(){
+    logBuffer.length = 0;
+}

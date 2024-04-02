@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" class="dark-mode">
+<head>
+    <title>Sneiper Logs</title>
+    <style>
+        /* Dark mode styles */
+        .dark-mode body {
+          background-color: #222;
+          color: #fff;
+        }
+        .dark-mode .form-control {
+          background-color: #333;
+          color: #fff;
+        }
+      </style>
+      <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body>
+    <a href="/" class="btn btn-primary">Go back</a>
+    <div id="logOutput"></div>
+    <script>
+        async function fetchLogs() {
+            try {
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`/logs?_=${cacheBuster}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const text = await response.text(); // First get the response as text
+                if (!text) {
+                    console.log('No logs to display.');
+                    return; // Early return if the response is empty
+                }
+                const logs = JSON.parse(text); // Then parse the text as JSON
+                if (!Array.isArray(logs)) {
+                    throw new Error('Expected logs to be an array');
+                }
+                const logDiv = document.getElementById('logOutput');
+                logDiv.innerHTML = ''; // Clear existing log entries
+                logs.forEach(log => {
+                    const logEntry = document.createElement('div');
+                    logEntry.textContent = log;
+                    logDiv.appendChild(logEntry);
+                });
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+                const logDiv = document.getElementById('logOutput');
+                logDiv.innerHTML = `<div>Error fetching logs: ${error.message}</div>`;
+            }
+        }
+        setInterval(fetchLogs, 1000); // Fetch logs every second
+        window.addEventListener('popstate', function (e) { var state = e.state; if (state !== null) {
+            window.location.href = '/';
+        } });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

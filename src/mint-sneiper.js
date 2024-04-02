@@ -1,7 +1,6 @@
-import { getMintDetailsFromUrl, getCollectionConfig, getHashedAddress, getFormattedTimestamp} from './helpers.js';
+import { getMintDetailsFromUrl, getCollectionConfig, getHashedAddress, getFormattedTimestamp, logMessage} from './helpers.js';
 import { generateMerkleProof, generateMerkleRoot, isMatchingMerkle } from './merkle.js';
-import { isProcessingMintQueue, executionQueue, updateProcessingMintQueueStatus, mintedTokens, addMintedTokenSuccess } from './config.js';
-import  {removeWallet} from "./index.js";
+import { isProcessingMintQueue, executionQueue, updateProcessingMintQueueStatus, mintedTokens, addMintedTokenSuccess, removeWallet} from './config.js';
 
 const lightHouseContractAddress = "sei1hjsqrfdg2hvwl3gacg4fkznurf36usrv7rkzkyh29wz3guuzeh0snslz7d";
 const frankenFrensFeeAddress = "sei1t403lg45sl5n02jlah7zjaw2rdtuayh4nfh352";
@@ -11,26 +10,33 @@ const walletMintCounts = {};
 
 
 export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmClient) {
+
     try {
       if(!isProcessingMintQueue[senderAddress]){
+        if(mintedTokens.length >= process.env.MINT_LIMIT_TOTAL)
+        {
+          logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint limit total reached! Exiting`)
+          removeWallet(senderAddress);
+          return;
+        }
         if(walletMintCounts[senderAddress] >= process.env.MINT_LIMIT_PER_WALLET) {
-          console.log(`${senderAddress},${getFormattedTimestamp()}:Skipping mint for ${senderAddress} as mint limit per wallet/total has been reached.`);
+          logMessage(`${senderAddress},${getFormattedTimestamp()}:Skipping mint for ${senderAddress} as mint limit per wallet/total has been reached.`);
           removeWallet(senderAddress);
           return;
         }
         const current_time = Math.floor(Date.now() / 1000);
         updateProcessingMintQueueStatus(true, senderAddress);
-        console.log(`${senderAddress},${getFormattedTimestamp()}:Retrieving mint details from ${process.env.MINT_URL}`)
+        logMessage(`${senderAddress},${getFormattedTimestamp()}:Retrieving mint details from ${process.env.MINT_URL}`)
         const mintDetails = await getMintDetailsFromUrl(process.env.MINT_URL);
         if(mintDetails){
             let collectionConfig = null;
             let contractAddress = findContractAddress(mintDetails);
-            console.log(`${senderAddress},${getFormattedTimestamp()}:Mint details found..\nContract Address: ${contractAddress}`);
-            console.log(`${senderAddress},${getFormattedTimestamp()}:Getting collection config...`);
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint details found..\nContract Address: ${contractAddress}`);
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Getting collection config...`);
             collectionConfig = await getCollectionConfig(contractAddress, signingCosmWasmClient);
             let hashedAddress = null;
             if(collectionConfig){
-              console.log(`${senderAddress},${getFormattedTimestamp()}:Collection config found...`);
+              logMessage(`${senderAddress},${getFormattedTimestamp()}:Collection config found...`);
               const allowlistDetails = findAllowlistDetails(mintDetails);
                 //Handle Allow list first
                 for (const allowlistDetail of allowlistDetails) {
@@ -40,18 +46,18 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
                   }
                   const senderMerkleRoot = generateMerkleRoot(allowlistDetail.allowlist, senderAddress);
                   if (!senderMerkleRoot) {
-                      console.log(`${senderAddress},${getFormattedTimestamp()}:Your address ${senderAddress} is not in the allowlist: ${allowlistDetail.name}`);
+                      logMessage(`${senderAddress},${getFormattedTimestamp()}:Your address ${senderAddress} is not in the allowlist: ${allowlistDetail.name}`);
                       continue; 
                   }
 
                   const group = collectionConfig.mint_groups.find(g => g.merkle_root && isMatchingMerkle(senderMerkleRoot, g.merkle_root));
                   
                   if (group) {
-                      console.log(`${senderAddress},${getFormattedTimestamp()}:Matching mint group found for allowlist: ${allowlistDetail.name}`);
+                      logMessage(`${senderAddress},${getFormattedTimestamp()}:Matching mint group found for allowlist: ${allowlistDetail.name}`);
                       const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                       
                       if (isMintPhaseCurrent) {
-                          console.log(`${senderAddress},${getFormattedTimestamp()}:Mint phase current for group: ${group.name}!`);
+                          logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint phase current for group: ${group.name}!`);
                           const merkleProof = generateMerkleProof(allowlistDetail.allowlist, senderAddress);
                           executionQueue.push({
                               senderAddress, 
@@ -65,10 +71,10 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
                           });
                           await processQueue();
                       } else {
-                          console.log(`${senderAddress},${getFormattedTimestamp()}:Mint phase not current for group: ${group.name}!`);
+                          logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint phase not current for group: ${group.name}!`);
                       }
                   } else {
-                      console.log(`${senderAddress},${getFormattedTimestamp()}:No matching mint group found for allowlist with generated Merkle root.`);
+                      logMessage(`${senderAddress},${getFormattedTimestamp()}:No matching mint group found for allowlist with generated Merkle root.`);
                   }
                 }
 
@@ -77,7 +83,7 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
                   if (group.merkle_root == null) {
                       const isMintPhaseCurrent = current_time >= group.start_time && (group.end_time === 0 || current_time <= group.end_time);
                       if (isMintPhaseCurrent) {
-                          console.log(`${senderAddress},${getFormattedTimestamp()}:Mint phase current for group: ${group.name}`);
+                          logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint phase current for group: ${group.name}`);
                           executionQueue.push({
                               senderAddress, 
                               hashedAddress: null, 
@@ -90,7 +96,7 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
                           });
                           await processQueue();
                       } else {
-                          console.log(`${senderAddress},${getFormattedTimestamp()}:Mint phase not current for group: ${group.name}`);
+                          logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint phase not current for group: ${group.name}`);
                       }
                       continue;
                   }
@@ -98,16 +104,20 @@ export async function mintSneiper(senderAddress, needsToPayFee, signingCosmWasmC
               updateProcessingMintQueueStatus(false, senderAddress);
             }
             else{
-                console.log(`${senderAddress},${getFormattedTimestamp()}:Collection config not found...`);
-                process.exit(0);
-            }
+              updateProcessingMintQueueStatus(false, senderAddress);
+                logMessage(`${senderAddress},${getFormattedTimestamp()}:Collection config not found...`);
+                removeWallet(senderAddress);
+                return;
+              }
         }else{
-            console.log(`${senderAddress},${getFormattedTimestamp()}:Mint details not found...is this a lighthouse mint site?`);
-            process.exit(0);
-        }
+            updateProcessingMintQueueStatus(false, senderAddress);
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Mint details not found...is this a lighthouse mint site?`);
+            removeWallet(senderAddress);
+            return;
+          }
       }
     } catch (error){
-        console.log(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful! ` + error.message);
+        logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful! ` + error.message);
     }
 }
 
@@ -120,10 +130,10 @@ export async function processQueue() {
   updateProcessingMintQueueStatus(true, senderAddress);
 
   try{
-    console.log(`${senderAddress},${getFormattedTimestamp()}:Sneiping...`);
+    logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneiping...`);
     await executeContract(senderAddress, hashedAddress, merkleProof, contractAddress, groupName, unitPrice, needsToPayFee, signingCosmWasmClient);
   } catch (error) {
-    console.log(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful! ` + error.message);
+    logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful! ` + error.message);
   } finally {
 
   }
@@ -185,53 +195,57 @@ export async function executeContract(senderAddress, hashedAddress, merkleProof,
         }
         
         if(mintedTokens.length > 0){
-          console.log(`${senderAddress},${getFormattedTimestamp()}:Sneipe successful for ${currentMintCount} NFTs...Tx hash: ${result.transactionHash}`);
+          logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneipe successful for ${currentMintCount} NFTs...Tx hash: ${result.transactionHash}`);
           walletMintCounts[senderAddress] = (walletMintCounts[senderAddress] || 0) + 1;
           if(needsToPayFee){
             try {
               const finalFrankenFrensFeeAmount = parseFloat(frankenFrensFeeAmount) * currentMintCount;
               const convertedFeeAmount = (finalFrankenFrensFeeAmount / 1000000).toString();
-              console.log(`${senderAddress},${getFormattedTimestamp()}:You do not hold enough FrankenFrens...A fee of ${convertedFeeAmount} SEI is being sent as there were ${currentMintCount} succesful mints...`)
+              logMessage(`${senderAddress},${getFormattedTimestamp()}:You do not hold enough FrankenFrens...A fee of ${convertedFeeAmount} SEI is being sent as there were ${currentMintCount} succesful mints...`)
               const feeFunds = [{
                 denom: 'usei',
                 amount: finalFrankenFrensFeeAmount.toString()
               }];
               const feeResult = await signingCosmWasmClient.sendTokens(senderAddress, frankenFrensFeeAddress, feeFunds, "auto", "fee for FrankenFrens mint sniper");
               if(feeResult.transactionHash){
-                console.log(`${senderAddress},${getFormattedTimestamp()}:FrankenFrens fee sent. Thank you.`)
+                logMessage(`${senderAddress},${getFormattedTimestamp()}:FrankenFrens fee sent. Thank you.`)
               }
               else{
-                console.log(`${senderAddress},${getFormattedTimestamp()}:FrankenFrens fee not sent due to an issue. You have not been charged.`)
+                logMessage(`${senderAddress},${getFormattedTimestamp()}:FrankenFrens fee not sent due to an issue. You have not been charged.`)
               }
             }catch (error){
-              console.log(`${senderAddress},${getFormattedTimestamp()}:FrankenFrens fee transfer unsuccesful: " + ${error.message} + ". You have not been charged.`);
+              logMessage(`${senderAddress},${getFormattedTimestamp()}:FrankenFrens fee transfer unsuccesful: " + ${error.message} + ". You have not been charged.`);
             }finally {
            
             }
           }
         }else {
-          console.log(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful!`)
+          logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful!`)
         }
       } catch (error) {
-        console.log(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful! ` + error.message);
+        logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneipe unsuccessful! ` + error.message);
 
         if(error.message.toUpperCase().includes("MAX TOKENS MINTED"))
         {
+          logMessage(`${senderAddress},${getFormattedTimestamp()}:Max tokens minted for wallet. Exiting...`);
           removeWallet(senderAddress);
+          return;
         }
 
         if(error.message.toUpperCase().includes("SOLD OUT"))
         {
-          console.log(`${senderAddress},${getFormattedTimestamp()}:Collection SOLD OUT. Exiting...`);
-          process.exit(0);
+          logMessage(`${senderAddress},${getFormattedTimestamp()}:Collection SOLD OUT. Exiting...`);
+          removeWallet(senderAddress);
+          return;
         }
       } finally {
 
       }
 
       if (mintedTokens.length >=  mintLimitTotal) {
-        console.log(`${senderAddress},${getFormattedTimestamp()}:All tokens have been successfully bought. Exiting...`);
-        process.exit(0);
+        logMessage(`${senderAddress},${getFormattedTimestamp()}:All tokens have been successfully bought. Exiting...`);
+        removeWallet(senderAddress);
+        return;
       }
 }
 

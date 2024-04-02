@@ -1,5 +1,7 @@
-import { buyingIntervalIds, mintingIntervalIds } from './config.js';
-import { getHoldings} from './helpers.js';
+import { mintingIntervalIds,clearBoughtTokenIds, clearMintedTokens} from './config.js';
+import { getHoldings, logMessage, getFormattedTimestamp, getShouldExitBuyMode, updateShouldExitBuyMode, updateBuyTimeoutId} from './helpers.js';
+import dotenv from 'dotenv';
+import fs from 'fs';
 import { buySneiper } from './buy-sneiper.js';
 import { mintSneiper } from './mint-sneiper.js';
 import { restoreWallet } from "@sei-js/core";
@@ -7,17 +9,7 @@ import { getSigningCosmWasmClient } from "@sei-js/core";
 import {fromHex} from "@cosmjs/encoding";
 import {DirectSecp256k1Wallet} from "@cosmjs/proto-signing";
 
-
-export let walletConfigs = process.env.RECOVERY_PHRASE.split(',');
-
-export function removeWallet(senderAddress)
-{
-    if (mintingIntervalIds[senderAddress]) {
-        clearInterval(mintingIntervalIds[senderAddress]);
-        delete mintingIntervalIds[senderAddress]; // Remove the interval ID from tracking
-    }
-    walletConfigs = walletConfigs.filter(wallet => wallet !== senderAddress); // Remove the wallet
-}
+let buySneiperTimeoutId; 
 
 async function processConfig(config) {
     try {
@@ -38,25 +30,27 @@ async function processConfig(config) {
         const signingCosmWasmClient = await getSigningCosmWasmClient(process.env.RPC_URL, restoredWallet, {gasPrice: process.env.GAS_LIMIT + "usei"});
 
         if(process.env.MODE === 'MINT'){
-            console.log("Sneiper in MINT mode");
-            console.log("Checking if you hold any FrankenFrens...");
+            clearMintedTokens();
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneiper in MINT mode`);
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Checking if you hold any FrankenFrens...`);
             const isHolder = await getHoldings(senderAddress, signingCosmWasmClient);
             let needsToPayFee = true;
             if(isHolder >= 5){
-                console.log("You hold at least 5 FrankenFrens so you will not be charged any fees for every successful mint!");
+                logMessage(`${senderAddress},${getFormattedTimestamp()}:You hold at least 5 FrankenFrens so you will not be charged any fees for every successful mint`);
                 needsToPayFee = false;
             } else {
-                console.log("You do not hold at least 5 FrankenFrens so a fee of 0.1 SEI will be charged for every successful mint!");
+                logMessage(`${senderAddress},${getFormattedTimestamp()}:You do not hold at least 5 FrankenFrens so a fee of 0.1 SEI will be charged for every successful mint!`);
             }
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
 
-                mintingIntervalIds[senderAddress] = setInterval(() => mintSneiper(senderAddress, needsToPayFee, signingCosmWasmClient), pollingFrequency);
+                mintingIntervalIds[senderAddress] = setInterval(async () => await mintSneiper(senderAddress, needsToPayFee, signingCosmWasmClient), pollingFrequency);
             } else {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
             }
         } else if (process.env.MODE === "BUY"){
-            console.log("Sneiper in BUY mode:" 
+            clearBoughtTokenIds();
+            logMessage(`${senderAddress},${getFormattedTimestamp()}:Sneiper in BUY mode:` 
              + "\nwith contract address: " + process.env.CONTRACT_ADDRESS 
              + "\nwith token id: " + process.env.TOKEN_ID 
              + "\nwith buy limit: " + process.env.BUY_LIMIT 
@@ -64,28 +58,54 @@ async function processConfig(config) {
              + "\nwith gas limit: " + process.env.GAS_LIMIT 
              + "\nwith polling frequency: " + process.env.POLLING_FREQUENCY
             );
-            console.log("\nSneiper watching marketplace listings...");
+            logMessage(`\n${senderAddress},${getFormattedTimestamp()}:Sneiper watching marketplace listings...`);
             const pollingFrequency = parseFloat(process.env.POLLING_FREQUENCY) * 1000;
             if (!isNaN(pollingFrequency) && pollingFrequency > 0) {
-                const intervalId = setInterval(() => buySneiper(senderAddress, signingCosmWasmClient), pollingFrequency);
-                buyingIntervalIds.push(intervalId);
+                const buyFunction = async () => {
+                    if (!getShouldExitBuyMode()) {
+                        await buySneiper(senderAddress, signingCosmWasmClient);
+                        buySneiperTimeoutId = setTimeout(buyFunction, pollingFrequency);
+                        updateBuyTimeoutId(buySneiperTimeoutId);
+                    }
+                    else{
+                        console.log("Exiting buy mode...");
+                        return;
+                    }
+                };
+                buyFunction();
             } else {
                 console.error("Invalid POLLING_FREQUENCY. Please set a valid number in seconds");
             }
         } else {
-            console.log("Invalid MODE! Try BUY or MINT");
+            logMessage("Invalid MODE! Try BUY or MINT");
         }
     } catch (error) {
         console.error("Error processing config: " + error.message);
     }
 }
-
-async function main() {
+export async function main() {
+    reloadEnv();
+    updateShouldExitBuyMode(false);
+    let walletConfigs = reloadWalletConfig();
     if(process.env.MODE === 'MINT'){
         await Promise.allSettled(walletConfigs.map(config => processConfig(config.trim())));
     }else {
-        await walletConfigs.map(config => processConfig(config.trim()))
+        if(walletConfigs.length > 0) {
+            await processConfig(walletConfigs[0].trim());
+        }
     }
 }
 
-main();
+const reloadEnv = () => {
+    const envConfig = dotenv.parse(fs.readFileSync('.env'))
+
+    for (const key in envConfig) {
+        process.env[key] = envConfig[key]
+    }
+}
+
+const reloadWalletConfig = () =>{
+    return process.env.RECOVERY_PHRASE ? process.env.RECOVERY_PHRASE.split(',') : [];
+}
+
+

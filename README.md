@@ -36,10 +36,10 @@ BUY mode is completely FREE to access and use for holders and non holders of Fra
    
 8. Your web browser should open a webpage at => http://localhost:3000
 
-9. Fill in the configuration presented as directed:
+9. Fill in the configuration page:
 ![image](https://github.com/fudgebucket27/sneiper/assets/5258063/a389f888-8afa-4acd-aa86-928736df5a64)
 
-10. Once you have configured sneiper, at the bottom of the home page of Sneiper, press 'Start Sneiper' to start sneiper. Press 'Go Back'
+10. Once you have configured sneiper and chosen a mode, at the bottom of the home page of Sneiper, press 'Start Sneiper' to start sneiper. 
 
 11. To exit sneiper, click on 'Exit Sneiper' at the bottom of the home page Sneiper.
     

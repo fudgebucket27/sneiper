@@ -41,7 +41,7 @@ BUY mode is completely FREE to access and use for holders and non holders of Fra
 
 10. Once you have configured sneiper and chosen a mode, at the bottom of the home page of Sneiper, press 'Start Sneiper' to start sneiper. 
 
-11. To exit sneiper, click on 'Exit Sneiper' at the bottom of the home page Sneiper.
+11. To exit sneiper, click on 'Exit Sneiper' at the bottom of the home page of Sneiper.
     
 # How to update
 Run this command in the folder of sneiper to grab the latest updates

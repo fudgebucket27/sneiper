@@ -49,6 +49,12 @@ Run this command in the folder of sneiper to grab the latest updates
 ```bash
 git pull
 ```
+
+Then run this command to install any new dependencies.
+
+```bash
+npm install
+```
    
 # Contributing
 Pull requests are welcome! 
